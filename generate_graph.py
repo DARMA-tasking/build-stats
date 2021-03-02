@@ -29,8 +29,9 @@ workflow = repo.get_workflow(id_or_name=WORKFLOW_NAME)
 # Data to be plotted
 timings = []
 run_nums = []
+dates = []
 
-workflow_runs = workflow.get_runs(status="success", branch=BRANCH_NAME)
+workflow_runs = workflow.get_runs()
 
 print(f'workflow_runs.totalCount={workflow_runs.totalCount} and requested_last_runs={REQUESTED_N_LAST_BUILDS}')
 
@@ -38,19 +39,27 @@ last_n_runs = min(REQUESTED_N_LAST_BUILDS, workflow_runs.totalCount)
 
 print(f'last_n_runs={last_n_runs}')
 
-for run in workflow_runs[:last_n_runs]:
-    run_timing = run.timing()
-    print(f"workflow_run:{run.workflow_id} with ID:{run.id} took:{run_timing.run_duration_ms}ms")
+run_counter = 0
+for run in workflow_runs:
+    if(run.head_branch == BRANCH_NAME and run.status == 'completed'):
+        run_timing = run.timing()
+        print(f"workflow_run:{run.workflow_id} with ID:{run.id} took:{run_timing.run_duration_ms}ms")
 
-    # Convert ms to min
-    timings.append(run_timing.run_duration_ms / 60000.0)
-    run_nums.append(run.run_number)
+        # Convert ms to min
+        timings.append(run_timing.run_duration_ms / 60000.0)
+        run_nums.append(run.run_number)
+        dates.append(run.created_at)
+
+        run_counter += 1
+
+    if run_counter >= last_n_runs:
+        break
 
 SMALL_SIZE = 15
 MEDIUM_SIZE = 25
 BIGGER_SIZE = 35
 
-plt.rc('font', size=SMALL_SIZE, family='serif')
+plt.rc('font', size=MEDIUM_SIZE, family='serif')
 plt.rc('axes', titlesize=BIGGER_SIZE, labelsize=MEDIUM_SIZE)
 plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
@@ -58,9 +67,11 @@ plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
 
 # plot
-plt.figure(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
+fig, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
 plt.plot(run_nums, timings, color='b', marker='o')
 plt.grid(True)
+fig.text(0.05,0.02, f'{dates[-1].day} {dates[-1].strftime("%B")} {dates[-1].year }')
+fig.text(0.95,0.02, f'{dates[0].day} {dates[0].strftime("%B")} {dates[0].year }', horizontalalignment='right')
 
 plt.title(GRAPH_TITLE)
 plt.xlabel(X_LABEL)
