@@ -1,0 +1,56 @@
+name: "Graph build times to wiki page"
+description: "Genertates a graph of build times for a given workflow and pushes it to project's wiki page"
+
+inputs:
+  github_personal_token:
+    description: 'Github personal access token used to push graph to remote wiki repo'
+    required: true
+  github_token:
+    description: 'Github token used for Github API requests'
+    required: true
+    default: ${{ github.token }}
+  workflow:
+    description: |
+      'Name of the worflow (yaml file or Github's unique workflow ID number)
+      for which the graph will be generated'
+    required: true
+  filename:
+    description: 'Filename for the generated graph that will be pushed to the wiki repo'
+    default: 'graph.png'
+  repo:
+    description: |
+      'Repository name where queried workflow is being run. This should only be used
+      when the asked workflow is being run on different repository than workflow using this action'
+    default: ${{ github.repository }}
+  num_last_build:
+    description: 'Number of last builds used for generating graph'
+    default: '25'
+  branch:
+    description: 'Branch on which workflow is running'
+    default: develop
+  title:
+    description: 'Title of the generated graph'
+  x_label:
+    description: 'X axis label'
+    default: Run number
+  y_label:
+    description: 'Y axis label'
+    default: Build time (min)
+  graph_width:
+    description: 'Graph width in inches'
+    default: 6.4
+  graph_height:
+    description: 'Graph height in inches'
+    default: 4.8
+  commit_message:
+    description: 'Commit message for wiki page'
+    default: Push build time graph
+
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
+branding:
+  icon: "book-open"
+  color: "white"
