@@ -23,6 +23,8 @@ jobs:
         github_token: ${{ github.token }}
         workflow: workflow_name.yml
         graph_filename: build_times_graph.png
+        badge_filename: build_time_badge.svg
+        badge_title: {workflow_name} build time
         num_last_build: 50
         title: Last 50 builds of {workflow_name} workflow
         graph_width: 19
@@ -40,6 +42,7 @@ Following inputs can be used to customize the graph
 | `workflow`              | TRUE   | Name of the worflow (yaml file or Github's unique workflow ID number) for which the graph will be generated |
 | `graph_filename`        | FALSE  | Filename for the generated graph that will be pushed to the wiki repo |
 | `badge_filename`        | FALSE  | Filename for generated badge which displays most recent build time. Note that this file is SVG type |
+| `badge_title`           | FASLE  | Title that will be displayed on the badge |
 | `repo`                  | FALSE  | Repository name where queried workflow is being run. This should only be used when the asked workflow is being run on different repository than workflow using this action |
 | `num_last_build`        | FALSE  | Number of last builds used for generating graph |
 | `branch`                | FALSE  | Branch on which workflow is running |

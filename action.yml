@@ -21,6 +21,9 @@ inputs:
     description: 'Filename for generated badge which displays most recent build time.
     Note that this file is SVG type'
     default: 'build_status_badge.svg'
+  badge_title:
+    description: 'Name that will be displayed on the badge'
+    default: ${{ github.repository }} build time
   repo:
     description: |
       'Repository name where queried workflow is being run. This should only be used

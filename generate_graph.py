@@ -17,6 +17,7 @@ GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
 GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
 GRAPH_FILENAME = os.getenv('INPUT_GRAPH_FILENAME')
 BADGE_FILENAME = os.getenv('INPUT_BADGE_FILENAME')
+BADGE_TITLE = os.getenv('INPUT_BADGE_TITLE')
 
 print(f'Repo={REPO_NAME} Workflow={WORKFLOW_NAME}')
 
@@ -88,9 +89,10 @@ average_time = total_run_time / last_n_runs
 
 BUILD_TIME = timings[0]
 BADGE_COLOR = "green" if BUILD_TIME <= average_time else "red"
+title = BADGE_TITLE.replace(" ", "%20")
 
 print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
-url = f"https://img.shields.io/badge/vt:develop%20build%20time-{format(BUILD_TIME,'.1f')}%20min-{BADGE_COLOR}.svg"
+url = f"https://img.shields.io/badge/{title}-{format(BUILD_TIME,'.1f')}%20min-{BADGE_COLOR}.svg"
 
 print(f"Downloading badge with URL = {url}")
 r = requests.get(url)
