@@ -40,20 +40,18 @@ last_n_runs = min(REQUESTED_N_LAST_BUILDS, workflow_runs.totalCount)
 print(f'last_n_runs={last_n_runs}')
 
 run_counter = 0
-total_run_time = 0
+
 for run in workflow_runs:
     if(run.head_branch == BRANCH_NAME and run.status == 'completed'):
         run_timing = run.timing()
         print(f"workflow_run:{run.workflow_id} with ID:{run.id} took:{run_timing.run_duration_ms}ms")
 
         # Convert ms to min
-        time_in_min = run_timing.run_duration_ms / 60000.0
-        timings.append(time_in_min)
+        timings.append(run_timing.run_duration_ms / 60000.0)
         run_nums.append(run.run_number)
         dates.append(run.created_at)
 
         run_counter += 1
-        total_run_time += time_in_min
 
     if run_counter >= last_n_runs:
         break
@@ -86,10 +84,10 @@ plt.savefig(GRAPH_FILENAME)
 
 # Generate badge with most recent build time
 
-average_time = total_run_time / last_n_runs
+average_time = sum(timings) / last_n_runs
 
 BUILD_TIME = timings[0]
-BADGE_COLOR = "green" if BUILD_TIME <= average_time else "red"
+BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
 title = BADGE_TITLE.replace(" ", "%20")
 
 print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
