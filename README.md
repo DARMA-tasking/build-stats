@@ -42,7 +42,8 @@ Following inputs can be used to customize the graph
 | `workflow`              | TRUE   | Name of the worflow (yaml file or Github's unique workflow ID number) for which the graph will be generated |
 | `graph_filename`        | FALSE  | Filename for the generated graph that will be pushed to the wiki repo |
 | `badge_filename`        | FALSE  | Filename for generated badge which displays most recent build time. Note that this file is SVG type |
-| `badge_title`           | FASLE  | Title that will be displayed on the badge |
+| `badge_title`           | FALSE  | Title that will be displayed on the badge |
+| `badge_logo`            | FALSE  | Logo which will be displayed on the badge. For the list of logos see https://shields.io/
 | `repo`                  | FALSE  | Repository name where queried workflow is being run. This should only be used when the asked workflow is being run on different repository than workflow using this action |
 | `num_last_build`        | FALSE  | Number of last builds used for generating graph |
 | `branch`                | FALSE  | Branch on which workflow is running |

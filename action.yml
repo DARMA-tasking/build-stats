@@ -24,6 +24,8 @@ inputs:
   badge_title:
     description: 'Name that will be displayed on the badge'
     default: ${{ github.repository }} build time
+  badge_logo:
+    description: 'Logo which will be displayed on the badge. For the list of logos see https://shields.io/'
   repo:
     description: |
       'Repository name where queried workflow is being run. This should only be used

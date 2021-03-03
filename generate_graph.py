@@ -18,6 +18,7 @@ GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
 GRAPH_FILENAME = os.getenv('INPUT_GRAPH_FILENAME')
 BADGE_FILENAME = os.getenv('INPUT_BADGE_FILENAME')
 BADGE_TITLE = os.getenv('INPUT_BADGE_TITLE')
+BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
 
 print(f'Repo={REPO_NAME} Workflow={WORKFLOW_NAME}')
 
@@ -93,6 +94,9 @@ title = BADGE_TITLE.replace(" ", "%20")
 
 print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
 url = f"https://img.shields.io/badge/{title}-{format(BUILD_TIME,'.1f')}%20min-{BADGE_COLOR}.svg"
+
+if(len(BADGE_LOGO) > 0):
+    url += f"?logo={BADGE_LOGO}"
 
 print(f"Downloading badge with URL = {url}")
 r = requests.get(url)
