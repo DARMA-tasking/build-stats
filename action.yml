@@ -14,9 +14,13 @@ inputs:
       'Name of the worflow (yaml file or Github's unique workflow ID number)
       for which the graph will be generated'
     required: true
-  filename:
+  graph_filename:
     description: 'Filename for the generated graph that will be pushed to the wiki repo'
     default: 'graph.png'
+  badge_filename:
+    description: 'Filename for generated badge which displays most recent build time.
+    Note that this file is SVG type'
+    default: 'build_status_badge.svg'
   repo:
     description: |
       'Repository name where queried workflow is being run. This should only be used
