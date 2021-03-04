@@ -28,7 +28,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$GIT_REPOSITORY_URL"
 
     # Generate graph
-    python3 /generate_graph.py -o $tmp_dir/"${INPUT_FILENAME}"
+    python3 /generate_graph.py
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
