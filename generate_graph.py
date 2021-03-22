@@ -1,102 +1,98 @@
 import matplotlib.pyplot as plt
 import argparse
-from github import Github
 import os
 import requests
+from datetime import date
+import pandas as pd
 
-# Input variables from Github action
-GITHUB_TOKEN = os.getenv('INPUT_GITHUB_TOKEN')
-REPO_NAME = os.getenv('INPUT_REPO')
-WORKFLOW_NAME = os.getenv('INPUT_WORKFLOW')
-BRANCH_NAME = os.getenv('INPUT_BRANCH')
-REQUESTED_N_LAST_BUILDS = int(os.getenv('INPUT_NUM_LAST_BUILD'))
-GRAPH_TITLE = os.getenv('INPUT_TITLE', '')
-X_LABEL = os.getenv('INPUT_X_LABEL')
-Y_LABEL = os.getenv('INPUT_Y_LABEL')
-GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
-GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
-GRAPH_FILENAME = os.getenv('INPUT_GRAPH_FILENAME')
-BADGE_FILENAME = os.getenv('INPUT_BADGE_FILENAME')
-BADGE_TITLE = os.getenv('INPUT_BADGE_TITLE')
-BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
+def prepare_data():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--time', help='Build time', required=True)
+    parser.add_argument('-r', '--run_num', help='Run number', required=True)
 
-print(f'Repo={REPO_NAME} Workflow={WORKFLOW_NAME}')
+    new_build_time = parser.parse_args().time
+    new_run_num = parser.parse_args().run_num
+    new_date = date.today().strftime("%d %B %Y")
 
-g = Github(GITHUB_TOKEN)
-repo = g.get_repo(REPO_NAME)
-workflow = repo.get_workflow(id_or_name=WORKFLOW_NAME)
+    time_in_min = int(new_build_time[0: new_build_time.index("m")])
+    time_in_seconds = int(new_build_time[new_build_time.index("m") + 1: new_build_time.index(".")])
+    total_time_seconds = time_in_seconds + time_in_min * 60
 
-# Data to be plotted
-timings = []
-run_nums = []
-dates = []
+    print(f"Build time is {new_build_time} RUN_NUM is {new_run_num}\n\
+        Build time minutes {time_in_min} in seconds is {time_in_seconds}")
 
-workflow_runs = workflow.get_runs()
+    PREVIOUS_BUILDS_FILENAME = os.getenv('INPUT_BUILD_TIMES_FILENAME')
+    df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
+    last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
+    updated = last_builds.append(pd.DataFrame([[total_time_seconds, new_run_num, new_date]], columns=['time','run_num','date']))
 
-print(f'workflow_runs.totalCount={workflow_runs.totalCount} and requested_last_runs={REQUESTED_N_LAST_BUILDS}')
+    # Data to be plotted
+    timings = updated['time'].tolist()
+    run_nums = updated['run_num'].tolist()
+    dates = updated['date'].tolist()
 
-last_n_runs = min(REQUESTED_N_LAST_BUILDS, workflow_runs.totalCount)
+    print(f"build times = {timings}")
+    print(f"run nums = {run_nums}")
 
-print(f'last_n_runs={last_n_runs}')
+    total_run_time = sum(timings)
+    last_n_runs = updated.shape[0]
 
-run_counter = 0
+    updated.to_csv(PREVIOUS_BUILDS_FILENAME, index=False)
 
-for run in workflow_runs:
-    if(run.head_branch == BRANCH_NAME and run.status == 'completed'):
-        run_timing = run.timing()
-        print(f"workflow_run:{run.workflow_id} with ID:{run.id} took:{run_timing.run_duration_ms}ms")
-
-        # Convert ms to min
-        timings.append(run_timing.run_duration_ms / 60000.0)
-        run_nums.append(run.run_number)
-        dates.append(run.created_at)
-
-        run_counter += 1
-
-    if run_counter >= last_n_runs:
-        break
-
-SMALL_SIZE = 15
-MEDIUM_SIZE = 25
-BIGGER_SIZE = 35
-
-plt.rc('font', size=MEDIUM_SIZE, family='serif')
-plt.rc('axes', titlesize=BIGGER_SIZE, labelsize=MEDIUM_SIZE)
-plt.rc('xtick', labelsize=SMALL_SIZE)
-plt.rc('ytick', labelsize=SMALL_SIZE)
-plt.rc('legend', fontsize=SMALL_SIZE)
-plt.rc('figure', titlesize=BIGGER_SIZE)
-
-# plot
-fig, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
-plt.plot(run_nums, timings, color='b', marker='o')
-plt.grid(True)
-
-fig.text(0.05,0.02, f'{dates[-1].day} {dates[-1].strftime("%B")} {dates[-1].year }')
-fig.text(0.95,0.02, f'{dates[0].day} {dates[0].strftime("%B")} {dates[0].year }', horizontalalignment='right')
-
-plt.title(GRAPH_TITLE)
-plt.xlabel(X_LABEL)
-plt.ylabel(Y_LABEL)
-
-plt.savefig(GRAPH_FILENAME)
+    return timings, run_nums, dates
 
 
-# Generate badge with most recent build time
+def generate_graph(timings, run_nums, dates):
+    SMALL_SIZE = 15
+    MEDIUM_SIZE = 25
+    BIGGER_SIZE = 35
 
-average_time = sum(timings) / last_n_runs
+    plt.rc('font', size=MEDIUM_SIZE, family='serif')
+    plt.rc('axes', titlesize=BIGGER_SIZE, labelsize=MEDIUM_SIZE)
+    plt.rc('xtick', labelsize=SMALL_SIZE)
+    plt.rc('ytick', labelsize=SMALL_SIZE)
+    plt.rc('legend', fontsize=SMALL_SIZE)
+    plt.rc('figure', titlesize=BIGGER_SIZE)
 
-BUILD_TIME = timings[0]
-BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
-title = BADGE_TITLE.replace(" ", "%20")
+    GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
+    GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
 
-print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
-url = f"https://img.shields.io/badge/{title}-{format(BUILD_TIME,'.1f')}%20min-{BADGE_COLOR}.svg"
+    # plot
+    fig, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
+    plt.plot(run_nums, timings, color='b', marker='o')
+    plt.grid(True)
 
-if(len(BADGE_LOGO) > 0):
-    url += f"?logo={BADGE_LOGO}"
+    fig.text(0.05,0.02, dates[0])
+    fig.text(0.95,0.02, dates[-1], horizontalalignment='right')
 
-print(f"Downloading badge with URL = {url}")
-r = requests.get(url)
+    plt.title(os.getenv('INPUT_TITLE'))
+    plt.xlabel(os.getenv('INPUT_X_LABEL'))
+    plt.ylabel(os.getenv('INPUT_Y_LABEL'))
 
-open(BADGE_FILENAME, 'wb').write(r.content)
+    plt.savefig(os.getenv('INPUT_GRAPH_FILENAME'))
+
+
+def generate_badge(run_nums):
+    average_time = sum(timings) / len(timings)
+
+    BUILD_TIME = timings[-1]
+    BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
+    title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
+
+    print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
+    url = f"https://img.shields.io/badge/{title}-{format(BUILD_TIME/60,'.1f')}%20min-{BADGE_COLOR}.svg"
+
+    BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
+    if(len(BADGE_LOGO) > 0):
+        url += f"?logo={BADGE_LOGO}"
+
+    print(f"Downloading badge with URL = {url}")
+    r = requests.get(url)
+
+    open(os.getenv('INPUT_BADGE_FILENAME'), 'wb').write(r.content)
+
+if __name__ == "__main__":
+    [timings, run_nums, dates] = prepare_data()
+    generate_graph(timings, run_nums, dates)
+    generate_badge(timings)
+
