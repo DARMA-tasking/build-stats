@@ -95,4 +95,3 @@ if __name__ == "__main__":
     [timings, run_nums, dates] = prepare_data()
     generate_graph(timings, run_nums, dates)
     generate_badge(timings)
-
