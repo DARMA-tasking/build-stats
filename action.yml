@@ -1,42 +1,48 @@
 name: "Graph build times to wiki page"
-description: "Genertates a graph of build times for a given workflow and pushes it to project's wiki page"
+description: |
+ "Builds and pushes docker image, while also generating a graph of build times
+  for a given workflow and pushes it to project's wiki page"
 
 inputs:
   github_personal_token:
     description: 'Github personal access token used to push graph to remote wiki repo'
     required: true
-  github_token:
-    description: 'Github token used for Github API requests'
+
+  # Docker image build/push related inputs
+  docker_username:
+    description: 'Username for dockerhub'
     required: true
-    default: ${{ github.token }}
-  workflow:
-    description: |
-      'Name of the worflow (yaml file or Github's unique workflow ID number)
-      for which the graph will be generated'
+  docker_password:
+    description: 'Password for dockerhub'
     required: true
+  docker_repository:
+    description: 'Dockerhub repository name'
+    required: true
+  tag:
+    description: 'Tag name for generated image'
+    default: latest
+
+  # Graph and badge related inputs
+  last_build_time_file:
+    description: 'Full path to a file generated inside docker image'
+    required: true
+  build_times_filename:
+    description: 'Filename where the previous build times are stored. File format should be CSV'
+    default: 'build_times.csv'
   graph_filename:
     description: 'Filename for the generated graph that will be pushed to the wiki repo'
     default: 'graph.png'
   badge_filename:
-    description: 'Filename for generated badge which displays most recent build time.
-    Note that this file is SVG type'
+    description: 'Filename for generated badge which displays most recent build time.File format should be SVG'
     default: 'build_status_badge.svg'
   badge_title:
     description: 'Name that will be displayed on the badge'
     default: ${{ github.repository }} build time
   badge_logo:
     description: 'Logo which will be displayed on the badge. For the list of logos see https://shields.io/'
-  repo:
-    description: |
-      'Repository name where queried workflow is being run. This should only be used
-      when the asked workflow is being run on different repository than workflow using this action'
-    default: ${{ github.repository }}
   num_last_build:
     description: 'Number of last builds used for generating graph'
     default: '25'
-  branch:
-    description: 'Branch on which workflow is running'
-    default: develop
   title:
     description: 'Title of the generated graph'
   x_label:
@@ -54,6 +60,9 @@ inputs:
   commit_message:
     description: 'Commit message for wiki page'
     default: Push build time graph
+  run_number:
+    description: 'Run number of the current workflow'
+    default: ${{github.run_number}}
 
 
 runs:
