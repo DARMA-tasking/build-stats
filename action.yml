@@ -7,10 +7,7 @@ inputs:
     description: 'Github personal access token used to push graph to remote wiki repo'
     required: true
   last_build_time:
-    description: 'Last build time. Format example 20m40s'
-    required: true
-  last_build_time_file:
-    description: 'Full path to a file generated inside docker image'
+    description: 'Last build time. Format example 20m40.00s'
     required: true
   build_times_filename:
     description: 'Filename where the previous build times are stored. File format should be CSV'

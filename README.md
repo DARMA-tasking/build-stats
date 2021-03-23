@@ -22,7 +22,7 @@ jobs:
       uses: DARMA-tasking/graph-build-times@master
       with:
         github_personal_token: ${{ secrets.GH_PAT }}
-        last_build_time_file: /build/app/build_time.txt
+        last_build_time: 50m20.00s
         build_times_filename: build_times.csv
         graph_filename: build_times_graph.png
         badge_filename: build_time_badge.svg
@@ -38,7 +38,7 @@ jobs:
 | Name                    |Required| Description                        |
 |-------------------------|--------|------------------------------------|
 | `github_personal_token` | TRUE   | Github personal access token used to push graph to remote wiki repo |
-| `last_build_time_file`  | TRUE   | Full path to a file generated inside docker image |
+| `last_build_time`       | TRUE   | Last build time. Format example 20m40.00s ([time](https://man7.org/linux/man-pages/man1/time.1.html) command output) |
 | `graph_filename`        | FALSE  | Filename for the generated graph that will be pushed to the wiki repo |
 | `badge_filename`        | FALSE  | Filename for generated badge which displays most recent build time. Note that this file is SVG type |
 | `badge_title`           | FALSE  | Title that will be displayed on the badge |
