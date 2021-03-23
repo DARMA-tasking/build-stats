@@ -23,6 +23,9 @@ inputs:
     default: latest
 
   # Graph and badge related inputs
+  last_build_time:
+    description: 'Last build time. Format example 20m40s'
+    required: true
   last_build_time_file:
     description: 'Full path to a file generated inside docker image'
     required: true

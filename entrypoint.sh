@@ -17,11 +17,11 @@ if [ -z "${INPUT_GITHUB_PERSONAL_TOKEN}" ]; then
     exit 1
 fi
 
-docker build -t ${INPUT_DOCKER_REPOSITORY}:${INPUT_TAG} .
+# docker build -t ${INPUT_DOCKER_REPOSITORY}:${INPUT_TAG} .
 
-containerId=$(docker create ${INPUT_DOCKER_REPOSITORY}:${INPUT_TAG})
-docker cp "$containerId":"${INPUT_LAST_BUILD_TIME_FILE}" ./last_build.txt
-docker rm "$containerId"
+# containerId=$(docker create ${INPUT_DOCKER_REPOSITORY}:${INPUT_TAG})
+# docker cp "$containerId":"${INPUT_LAST_BUILD_TIME_FILE}" ./last_build.txt
+# docker rm "$containerId"
 
 # echo "${INPUT_DOCKER_PASSWORD}" | docker login -u ${INPUT_DOCKER_USERNAME} --password-stdin docker.io
 # docker push ${INPUT_DOCKER_REPOSITORY}:latest
@@ -36,11 +36,11 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
     git pull "$GIT_REPOSITORY_URL"
 
-    build_time=$(ls -l | grep -oP 'real\s+\K\d+m\d+\.\d+s' "$GITHUB_WORKSPACE"/last_build.txt)
-    echo $build_time
+    # build_time=$(ls -l | grep -oP 'real\s+\K\d+m\d+\.\d+s' "$GITHUB_WORKSPACE"/last_build.txt)
+    # echo $build_time
 
     # Generate graph
-    python3 /generate_graph.py -t $build_time -r $INPUT_RUN_NUMBER
+    python3 /generate_graph.py -t $INPUT_LAST_BUILD_TIME -r $INPUT_RUN_NUMBER
 
     # git add .
     # git commit -m "$INPUT_COMMIT_MESSAGE"
