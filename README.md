@@ -1,6 +1,6 @@
 # graph-build-times
 
-The DARMA-tasking/graph-build-times is a GitHub action that builds docker image, pushes it to dockehub and generates a graph of build times together with the badge of the last build. To obtain the data of the last builds, it uses the file `build_times_filename` located in repository's wiki page. This is CSV file which contains build time, run number and the date. That data is represented by the columns `time`, `run_num` and `date`.
+The DARMA-tasking/graph-build-times is a GitHub action that generates a graph of build times together with the badge of the last build. To obtain the data of the last builds, it uses the file `build_times_filename` located in repository's wiki page. This is CSV file which contains build time, run number and the date. That data is represented by the columns `time`, `run_num` and `date`.
 
 The file specified with `last_build_time_file` input variable, has to contain the output of [time](https://man7.org/linux/man-pages/man1/time.1.html) command.
 
@@ -18,14 +18,10 @@ jobs:
   graph:
     runs-on: ubuntu-latest
     steps:
-    - name: Build&Push docker image and generate graph
+    - name: Generate graph and badge
       uses: DARMA-tasking/graph-build-times@master
       with:
         github_personal_token: ${{ secrets.GH_PAT }}
-        docker_username: ${{ secrets.DOCKER_USERNAME }}
-        docker_username: ${{ secrets.DOCKER_PASSWORD }}
-        docker_repository: user/repository
-        tag: latest
         last_build_time_file: /build/app/build_time.txt
         build_times_filename: build_times.csv
         graph_filename: build_times_graph.png
@@ -42,10 +38,6 @@ jobs:
 | Name                    |Required| Description                        |
 |-------------------------|--------|------------------------------------|
 | `github_personal_token` | TRUE   | Github personal access token used to push graph to remote wiki repo |
-| `docker_username`       | TRUE   | Username for dockerhub |
-| `docker_password`       | TRUE   | Password for dockerhub |
-| `docker_repository`     | TRUE   | Dockerhub repository name |
-| `tag`                   | TRUE   | Tag name for generated image |
 | `last_build_time_file`  | TRUE   | Full path to a file generated inside docker image |
 | `graph_filename`        | FALSE  | Filename for the generated graph that will be pushed to the wiki repo |
 | `badge_filename`        | FALSE  | Filename for generated badge which displays most recent build time. Note that this file is SVG type |

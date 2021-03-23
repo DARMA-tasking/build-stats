@@ -11,7 +11,7 @@ def prepare_data():
     parser.add_argument('-r', '--run_num', help='Run number', required=True)
 
     new_build_time = parser.parse_args().time
-    new_run_num = parser.parse_args().run_num
+    new_run_num = int(parser.parse_args().run_num)
     new_date = date.today().strftime("%d %B %Y")
 
     time_in_min = int(new_build_time[0: new_build_time.index("m")])
