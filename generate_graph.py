@@ -80,7 +80,7 @@ def generate_badge(run_nums):
     title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
 
     print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
-    url = f"https://img.shields.io/badge/{title}-{format(BUILD_TIME/60,'.1f')}%20min-{BADGE_COLOR}.svg"
+    url = f"https://img.shields.io/badge/{title}-{BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
 
     BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
     if(len(BADGE_LOGO) > 0):
