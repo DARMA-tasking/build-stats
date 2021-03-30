@@ -75,14 +75,14 @@ def generate_graph(timings, run_nums, dates):
     plt.savefig(os.getenv('INPUT_GRAPH_FILENAME'))
 
 
-def generate_badge(run_nums):
+def generate_badge(timings):
     average_time = sum(timings) / len(timings)
 
     BUILD_TIME = timings[-1]
     BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
     title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
 
-    print(f"Last build time = {BUILD_TIME} average build = {average_time} color = {BADGE_COLOR} ")
+    print(f"Last build time = {BUILD_TIME}seconds average build = {average_time}seconds color = {BADGE_COLOR}")
     url = f"https://img.shields.io/badge/{title}-{BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
 
     BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')

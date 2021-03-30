@@ -1,6 +1,6 @@
 # graph-build-times
 
-The DARMA-tasking/graph-build-times is a GitHub action that generates a graph of build times together with the badge of the last build. To obtain the data of the last builds, it uses the file `build_times_filename` located in repository's wiki page. This is CSV file which contains build time, run number and the date. That data is represented by the columns `time`, `run_num` and `date`.
+The DARMA-tasking/graph-build-times is a GitHub action that generates a graph of build times together with the badge of the last build. To obtain the data of the last builds, it uses the file `build_times_filename` located in repository's wiki page. This is CSV file which contains time, number and the date for past builds, represented by the columns `time`, `run_num` and `date`.
 
 The file specified with `last_build_time_file` input variable, has to contain the output of [time](https://man7.org/linux/man-pages/man1/time.1.html) command.
 
