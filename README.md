@@ -1,6 +1,8 @@
 # graph-build-times
 
-The DARMA-tasking/graph-build-times is a GitHub action that generates a graph of build times for a given workflow and then pushes that graph to the project's wiki page.
+The DARMA-tasking/graph-build-times is a GitHub action that generates a graph of build times together with the badge of the last build. To obtain the data of the last builds, it uses the file `build_times_filename` located in repository's wiki page. This is CSV file which contains time, number and the date for past builds, represented by the columns `time`, `run_num` and `date`.
+
+The file specified with `last_build_time_file` input variable, has to contain the output of [time](https://man7.org/linux/man-pages/man1/time.1.html) command.
 
 ## Workflow example
 
@@ -16,12 +18,12 @@ jobs:
   graph:
     runs-on: ubuntu-latest
     steps:
-    - name: Generate and push graph
+    - name: Generate graph and badge
       uses: DARMA-tasking/graph-build-times@master
       with:
         github_personal_token: ${{ secrets.GH_PAT }}
-        github_token: ${{ github.token }}
-        workflow: workflow_name.yml
+        last_build_time: 50m20.00s
+        build_times_filename: build_times.csv
         graph_filename: build_times_graph.png
         badge_filename: build_time_badge.svg
         badge_title: {workflow_name} build time
@@ -33,20 +35,15 @@ jobs:
 
 ## Inputs
 
-Following inputs can be used to customize the graph
-
 | Name                    |Required| Description                        |
 |-------------------------|--------|------------------------------------|
 | `github_personal_token` | TRUE   | Github personal access token used to push graph to remote wiki repo |
-| `github_token`          | TRUE   | Github token used for Github API requests |
-| `workflow`              | TRUE   | Name of the worflow (yaml file or Github's unique workflow ID number) for which the graph will be generated |
+| `last_build_time`       | TRUE   | Last build time. Format example 20m40.00s ([time](https://man7.org/linux/man-pages/man1/time.1.html) command output) |
 | `graph_filename`        | FALSE  | Filename for the generated graph that will be pushed to the wiki repo |
 | `badge_filename`        | FALSE  | Filename for generated badge which displays most recent build time. Note that this file is SVG type |
 | `badge_title`           | FALSE  | Title that will be displayed on the badge |
 | `badge_logo`            | FALSE  | Logo which will be displayed on the badge. For the list of logos see https://shields.io/
-| `repo`                  | FALSE  | Repository name where queried workflow is being run. This should only be used when the asked workflow is being run on different repository than workflow using this action |
 | `num_last_build`        | FALSE  | Number of last builds used for generating graph |
-| `branch`                | FALSE  | Branch on which workflow is running |
 | `title`                 | FALSE  | Title of the generated graph |
 | `x_label`               | FALSE  | X axis label |
 | `y_label`               | FALSE  | Y axis label |
