@@ -57,6 +57,9 @@ def generate_graph(timings, run_nums, dates):
     GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
     GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
 
+    # Times in CSV are stored in seconds, transform them to minutes for graph
+    timings = [x / 60 for x in timings]
+
     # plot
     fig, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
     plt.plot(run_nums, timings, color='b', marker='o')
