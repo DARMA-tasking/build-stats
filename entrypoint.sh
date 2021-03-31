@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -euo pipefail
+# set -euo pipefail
+set -x
 
 cd "$GITHUB_WORKSPACE"
 
@@ -44,7 +45,7 @@ cat build_result.txt
 build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' build_time.txt)
 
 
-# GENERATE BUILD TIME GRAPH
+# # GENERATE BUILD TIME GRAPH
 
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 (
