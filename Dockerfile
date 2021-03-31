@@ -1,7 +1,6 @@
-# FROM lifflander1/vt:amd64-ubuntu-20.04-clang-10-cpp
-FROM ubuntu:latest
+FROM lifflander1/vt:amd64-ubuntu-20.04-gcc-9-cpp
 
-ENV CC=gcc \
+ENV CC=clang-10 \
     CXX=clang++
 
 COPY entrypoint.sh /
@@ -15,25 +14,17 @@ RUN chmod +x /build_vt.sh
 
 RUN apt-get update -y -q && \
     apt-get install -y -q --no-install-recommends \
-    ca-certificates \
-    less \
-    curl \
-    git \
-    wget \
     clang-10 \
-    zlib1g \
-    zlib1g-dev \
-    ninja-build \
-    valgrind \
-    make-guile \
-    libomp5 \
-    python3 \
     python3-pip \
-    ssh && \
+    && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # The above probably should be prebuilt image
 RUN pip3 install matplotlib pandas requests
+
+RUN ln -s \
+    "$(which $(echo clang-10 | cut -d- -f1)++-$(echo clang-10  | cut -d- -f2))" \
+    /usr/bin/clang++
 
 ENTRYPOINT ["/entrypoint.sh"]
