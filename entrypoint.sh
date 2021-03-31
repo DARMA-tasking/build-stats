@@ -2,8 +2,10 @@
 
 # set -euo pipefail
 set -x
+alias python = python3
 
 cd "$GITHUB_WORKSPACE"
+ls
 
 if [ -z "$GITHUB_ACTOR" ]; then
     echo "GITHUB_ACTOR environment variable is not set"
@@ -24,28 +26,32 @@ wget https://include-what-you-use.org/downloads/include-what-you-use-0.14.src.ta
 tar xzf include-what-you-use-0.14.src.tar.gz --one-top-level=include-what-you-use --strip-components 1
 
 
-
 git clone https://github.com/aras-p/ClangBuildAnalyzer
 cd ClangBuildAnalyzer
 mkdir build && cd build
 
 cmake .. && make
-
+chmod +x ClangBuildAnalyzer
 ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
-cd "$GITHUB_WORKSPACE"
+
 
 
 # BUILD VT
+cd "$GITHUB_WORKSPACE"
 mkdir build
-$ClangBuildTool --start vt-build
-./build_vt.sh /vt /build
-$ClangBuildTool --stop vt-build > build_result.txt
+$ClangBuildTool --start $GITHUB_WORKSPACE/build
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
+$ClangBuildTool --stop $GITHUB_WORKSPACE/build vt-build
+$ClangBuildTool --analyze vt-build > build_result.txt
+
 cat build_result.txt
 
-build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' build_time.txt)
+build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' /build/build_time.txt)
 
 
-# # GENERATE BUILD TIME GRAPH
+$GITHUB_WORKSPACE/include-what-you-use/iwyu_tool.py -p ./build
+
+# GENERATE BUILD TIME GRAPH
 
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 (

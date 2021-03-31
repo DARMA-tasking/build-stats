@@ -83,7 +83,6 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_INSTALL_PREFIX="$VT_BUILD/install" \
       -Dvt_ci_build="${VT_CI_BUILD:-0}" \
       -DCMAKE_CXX_FLAGS="-ftime-trace" \
-      -DCMAKE_CXX_INCLUDE_WHAT_YOU_USE="$GITHUB_WORKSPACE/include-what-you-use/iwyu_tool.py" \
       "$VT"
 
-{ time cmake --build . --target "${target}" ; } 2> >(tee build_time.txt)
+{ time cmake --build . ; } 2> >(tee build_time.txt)
