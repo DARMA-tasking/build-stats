@@ -41,16 +41,20 @@ ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
 cd "$GITHUB_WORKSPACE"
 
 
-VT_BUILD_FOLDER = $GITHUB_WORKSPACE/build/vt
+VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
 # BUILD VT
-mkdir build
+mkdir -p build/vt
 $ClangBuildTool --start $VT_BUILD_FOLDER
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" OFF
 $ClangBuildTool --stop $VT_BUILD_FOLDER vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
-iwyu_tool.py -p $VT_BUILD_FOLDER
+iwyu_tool.py -p $VT_BUILD_FOLDER > include-what-you-use.txt
+
+# Build VT in a standard way to measure build time
+rm -rf $GITHUB_WORKSPACE/build
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -64,12 +68,16 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
+    cat $VT_BUILD_FOLDER/build_time.txt
     build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
     python3 /generate_graph.py -t $build_time -r $INPUT_RUN_NUMBER
 
-    # git add .
-    # git commit -m "$INPUT_COMMIT_MESSAGE"
-    # git push --set-upstream "$WIKI_URL" master
+    cp "$GITHUB_WORKSPACE/build_result.txt" .
+    cp "$GITHUB_WORKSPACE/include-what-you-use.txt" .
+
+    git add .
+    git commit -m "$INPUT_COMMIT_MESSAGE"
+    git push --set-upstream "$WIKI_URL" master
 ) || exit 1
 
 rm -rf "$tmp_dir"

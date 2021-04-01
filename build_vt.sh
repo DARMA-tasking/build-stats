@@ -4,6 +4,8 @@ set -ex
 
 source_dir=${1}
 build_dir=${2}
+extra_flags=${3}
+build_tests=${4}
 
 # Dependency versions, when fetched via git.
 detector_rev=master
@@ -82,7 +84,8 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" \
       -DCMAKE_INSTALL_PREFIX="$VT_BUILD/install" \
       -Dvt_ci_build="${VT_CI_BUILD:-0}" \
-      -DCMAKE_CXX_FLAGS="-ftime-trace" \
+      -DCMAKE_CXX_FLAGS="${extra_flags:-}" \
+      -DVT_BUILD_TESTS=${build_tests:-ON} \
       "$VT"
 
 { time cmake --build . ; } 2> >(tee build_time.txt)
