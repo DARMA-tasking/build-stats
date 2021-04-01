@@ -15,7 +15,7 @@ RUN chmod +x /build_vt.sh
 RUN apt-get update -y -q && \
     apt-get install -y -q --no-install-recommends \
     libc++-10-dev llvm-dev \
-    clang-10 \
+    clang-10 libclang-10-dev \
     python3-pip \
     && \
     apt-get clean && \

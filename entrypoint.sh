@@ -22,10 +22,15 @@ if [ -z "${INPUT_GITHUB_PERSONAL_TOKEN}" ]; then
     exit 1
 fi
 
+# include-what-you-use
 wget https://include-what-you-use.org/downloads/include-what-you-use-0.14.src.tar.gz
 tar xzf include-what-you-use-0.14.src.tar.gz --one-top-level=include-what-you-use --strip-components 1
+cd include-what-you-use
+mkdir build && cd build
+cmake .. && make && make install
+cd "$GITHUB_WORKSPACE"
 
-
+# ClangBuildAnalyzer
 git clone https://github.com/aras-p/ClangBuildAnalyzer
 cd ClangBuildAnalyzer
 mkdir build && cd build
@@ -33,26 +38,21 @@ mkdir build && cd build
 cmake .. && make
 chmod +x ClangBuildAnalyzer
 ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
+cd "$GITHUB_WORKSPACE"
 
 
+VT_BUILD_FOLDER = $GITHUB_WORKSPACE/build/vt
 
 # BUILD VT
-cd "$GITHUB_WORKSPACE"
 mkdir build
-$ClangBuildTool --start $GITHUB_WORKSPACE/build
+$ClangBuildTool --start $VT_BUILD_FOLDER
 /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
-$ClangBuildTool --stop $GITHUB_WORKSPACE/build vt-build
+$ClangBuildTool --stop $VT_BUILD_FOLDER vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
-cat build_result.txt
-
-build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' /build/build_time.txt)
-
-
-$GITHUB_WORKSPACE/include-what-you-use/iwyu_tool.py -p ./build
+iwyu_tool.py -p $VT_BUILD_FOLDER
 
 # GENERATE BUILD TIME GRAPH
-
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 (
     WIKI_URL="https://${INPUT_GITHUB_PERSONAL_TOKEN}@github.com/$GITHUB_REPOSITORY.wiki.git"
@@ -64,6 +64,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
+    build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
     python3 /generate_graph.py -t $build_time -r $INPUT_RUN_NUMBER
 
     # git add .
