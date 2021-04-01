@@ -2,7 +2,7 @@
 
 # set -euo pipefail
 set -x
-alias python = python3
+
 
 cd "$GITHUB_WORKSPACE"
 ls

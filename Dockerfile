@@ -25,5 +25,6 @@ RUN apt-get update -y -q && \
 RUN pip3 install matplotlib pandas requests
 
 RUN ln -s /usr/bin/clang++-10 /usr/bin/clang++
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 ENTRYPOINT ["/entrypoint.sh"]
