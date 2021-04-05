@@ -14,40 +14,51 @@ checkpoint_rev=develop
 mkdir -p "${build_dir}"
 pushd "${build_dir}"
 
-
-git clone -b "${detector_rev}" --depth 1 https://github.com/DARMA-tasking/detector.git
-export DETECTOR=$PWD/detector
 export DETECTOR_BUILD=${build_dir}/detector
-mkdir -p "$DETECTOR_BUILD"
-cd "$DETECTOR_BUILD"
-mkdir build
-cd build
-cmake -G "${CMAKE_GENERATOR:-Ninja}" \
-      -DCMAKE_INSTALL_PREFIX="$DETECTOR_BUILD/install" \
-      "$DETECTOR"
-cmake --build . --target install
-
-
-
-git clone -b "${checkpoint_rev}" --depth 1 https://github.com/DARMA-tasking/checkpoint.git
-export CHECKPOINT=$PWD/checkpoint
 export CHECKPOINT_BUILD=${build_dir}/checkpoint
-mkdir -p "$CHECKPOINT_BUILD"
-cd "$CHECKPOINT_BUILD"
-mkdir build
-cd build
-cmake -G "${CMAKE_GENERATOR:-Ninja}" \
-      -DCMAKE_INSTALL_PREFIX="$CHECKPOINT_BUILD/install" \
-      -Ddetector_DIR="$DETECTOR_BUILD/install" \
-      "$CHECKPOINT"
-cmake --build . --target install
 
+if test -d "${build_dir}/detector"
+then
+    { echo "Detector already in lib... not downloading, building, and installing"; } 2>/dev/null
+else
+    git clone -b "${detector_rev}" --depth 1 https://github.com/DARMA-tasking/detector.git
+    export DETECTOR=$PWD/detector
+
+    mkdir -p "$DETECTOR_BUILD"
+    cd "$DETECTOR_BUILD"
+    mkdir build
+    cd build
+    cmake -G "${CMAKE_GENERATOR:-Ninja}" \
+          -DCMAKE_INSTALL_PREFIX="$DETECTOR_BUILD/install" \
+          "$DETECTOR"
+    cmake --build . --target install
+fi
+
+
+if test -d "${build_dir}/checkpoint"
+then
+    { echo "Checkpoint already in lib... not downloading, building, and installing"; } 2>/dev/null
+else
+    git clone -b "${checkpoint_rev}" --depth 1 https://github.com/DARMA-tasking/checkpoint.git
+    export CHECKPOINT=$PWD/checkpoint
+
+    mkdir -p "$CHECKPOINT_BUILD"
+    cd "$CHECKPOINT_BUILD"
+    mkdir build
+    cd build
+    cmake -G "${CMAKE_GENERATOR:-Ninja}" \
+          -DCMAKE_INSTALL_PREFIX="$CHECKPOINT_BUILD/install" \
+          -Ddetector_DIR="$DETECTOR_BUILD/install" \
+          "$CHECKPOINT"
+    cmake --build . --target install
+fi
 
 export VT=${source_dir}
 export VT_BUILD=${build_dir}/vt
+
 mkdir -p "$VT_BUILD"
 cd "$VT_BUILD"
-rm -Rf ./*
+
 cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
       -Dvt_test_trace_runtime_enabled="${VT_TRACE_RUNTIME_ENABLED:-0}" \
@@ -88,3 +99,10 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       "$VT"
 
 { time cmake --build . --target "${4}" ; } 2> >(tee build_time.txt)
+
+
+if test "$use_ccache"
+then
+    { echo -e "===\n=== ccache statistics after build\n==="; } 2>/dev/null
+    ccache -s
+fi
