@@ -52,7 +52,12 @@ cd "$GITHUB_WORKSPACE"
 #rm -rf $GITHUB_WORKSPACE/build
 
 # Build VT with time-trace
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace"
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" vt
+vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
+
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" all
+tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
+
 $ClangBuildTool --all $VT_BUILD_FOLDER vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
@@ -71,8 +76,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # Generate graph
     cat $VT_BUILD_FOLDER/build_time.txt
 
-    build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
-    python3 /generate_graph.py -t $build_time -r $INPUT_RUN_NUMBER
+    python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $INPUT_RUN_NUMBER
 
     cp "$GITHUB_WORKSPACE/build_result.txt" .
     # cp "$GITHUB_WORKSPACE/include-what-you-use.txt" .
