@@ -22,13 +22,20 @@ if [ -z "${INPUT_GITHUB_PERSONAL_TOKEN}" ]; then
     exit 1
 fi
 
+
 # include-what-you-use
-wget https://include-what-you-use.org/downloads/include-what-you-use-0.14.src.tar.gz
-tar xzf include-what-you-use-0.14.src.tar.gz --one-top-level=include-what-you-use --strip-components 1
-cd include-what-you-use
-mkdir build && cd build
-cmake .. && make && make install
-cd "$GITHUB_WORKSPACE"
+# wget https://include-what-you-use.org/downloads/include-what-you-use-0.14.src.tar.gz
+# tar xzf include-what-you-use-0.14.src.tar.gz --one-top-level=include-what-you-use --strip-components 1
+# cd include-what-you-use
+# mkdir build && cd build
+# cmake .. && make && make install
+# cd "$GITHUB_WORKSPACE"
+
+VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
+
+# Build VT in a standard way to measure build time
+# /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
+# build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
 
 # ClangBuildAnalyzer
 git clone https://github.com/aras-p/ClangBuildAnalyzer
@@ -41,20 +48,14 @@ ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
 cd "$GITHUB_WORKSPACE"
 
 
-VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
+# Clean previous build
+#rm -rf $GITHUB_WORKSPACE/build
 
-# BUILD VT
-mkdir -p build/vt
-$ClangBuildTool --start $VT_BUILD_FOLDER
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" OFF
-$ClangBuildTool --stop $VT_BUILD_FOLDER vt-build
+# Build VT with time-trace
+/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace"
+$ClangBuildTool --all $VT_BUILD_FOLDER vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
-iwyu_tool.py -p $VT_BUILD_FOLDER > include-what-you-use.txt
-
-# Build VT in a standard way to measure build time
-rm -rf $GITHUB_WORKSPACE/build
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -69,11 +70,12 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
     # Generate graph
     cat $VT_BUILD_FOLDER/build_time.txt
+
     build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
     python3 /generate_graph.py -t $build_time -r $INPUT_RUN_NUMBER
 
     cp "$GITHUB_WORKSPACE/build_result.txt" .
-    cp "$GITHUB_WORKSPACE/include-what-you-use.txt" .
+    # cp "$GITHUB_WORKSPACE/include-what-you-use.txt" .
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
