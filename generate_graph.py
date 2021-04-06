@@ -5,6 +5,7 @@ import requests
 from datetime import date
 import pandas as pd
 
+# Convert the 'real' time duration from time command output to seconds
 def extract_build_time(in_time):
     time_in_min = int(in_time[0: in_time.index("m")])
     time_in_seconds = int(in_time[in_time.index("m") + 1: in_time.index(".")])
@@ -51,6 +52,12 @@ def prepare_data():
 
     return vt_timings, tests_timings, run_nums, dates
 
+def set_common_axis_data(iterable_axis):
+    for ax in iterable_axis:
+        ax.xaxis.get_major_locator().set_params(integer=True)
+        ax.legend()
+        ax.grid(True)
+        ax.set_ylabel(os.getenv('INPUT_Y_LABEL'))
 
 def generate_graph(vt, tests, run_nums, dates):
     SMALL_SIZE = 15
@@ -58,7 +65,7 @@ def generate_graph(vt, tests, run_nums, dates):
     BIGGER_SIZE = 35
 
     plt.rc('font', size=MEDIUM_SIZE, family='serif')
-    plt.rc('axes', titlesize=BIGGER_SIZE, labelsize=MEDIUM_SIZE)
+    plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=SMALL_SIZE)
     plt.rc('xtick', labelsize=SMALL_SIZE)
     plt.rc('ytick', labelsize=SMALL_SIZE)
     plt.rc('legend', fontsize=SMALL_SIZE)
@@ -70,19 +77,19 @@ def generate_graph(vt, tests, run_nums, dates):
     # Times in CSV are stored in seconds, transform them to minutes for graph
     vt_timings = [x / 60 for x in vt]
     tests_timings = [x / 60 for x in tests]
+    total_timings = [sum(x) for x in zip(vt_timings, tests_timings)]
 
     # plot
-    fig, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
-    plt.plot(run_nums, vt_timings, color='b', marker='o', label='vt')
-    plt.plot(run_nums, tests_timings, color='r', marker='o', label='tests')
-    plt.grid(True)
+    fig, (ax1, ax2, ax3) = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=3, ncols=1)
 
-    fig.text(0.05,0.02, dates[0])
-    fig.text(0.95,0.02, dates[-1], horizontalalignment='right')
-
-    plt.title(os.getenv('INPUT_TITLE'))
+    ax1.set_title(f"{os.getenv('INPUT_TITLE')} ({dates[0]} - {dates[-1]})")
     plt.xlabel(os.getenv('INPUT_X_LABEL'))
-    plt.ylabel(os.getenv('INPUT_Y_LABEL'))
+
+    ax1.plot(run_nums, total_timings, color='b', marker='o', label='total')
+    ax2.plot(run_nums, vt_timings, color='r', marker='s', label='vt-lib')
+    ax3.plot(run_nums, tests_timings, color='g', marker='d', label='tests')
+
+    set_common_axis_data([ax1, ax2, ax3])
 
     plt.savefig(os.getenv('INPUT_GRAPH_FILENAME'))
 

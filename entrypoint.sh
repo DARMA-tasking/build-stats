@@ -51,10 +51,11 @@ cd "$GITHUB_WORKSPACE"
 # Clean previous build
 #rm -rf $GITHUB_WORKSPACE/build
 
-# Build VT with time-trace
+# Build VT lib
 /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" vt
 vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
 
+# Build tests and examples
 /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" all
 tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
 
@@ -74,12 +75,10 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    cat $VT_BUILD_FOLDER/build_time.txt
-
     python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $INPUT_RUN_NUMBER
 
-    cp "$GITHUB_WORKSPACE/build_result.txt" .
-    # cp "$GITHUB_WORKSPACE/include-what-you-use.txt" .
+    cp "$GITHUB_WORKSPACE/build_result.txt" ./build_stats/
+    # cp "$GITHUB_WORKSPACE/include-what-you-use.txt" ./build_stats/
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
