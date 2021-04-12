@@ -59,6 +59,7 @@ vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.tx
 /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" all
 tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
 
+cp /ClangBuildAnalyzer.ini .
 $ClangBuildTool --all $VT_BUILD_FOLDER vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
