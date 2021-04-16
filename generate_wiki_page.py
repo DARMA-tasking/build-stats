@@ -138,8 +138,12 @@ def create_md_page(last_builds, templates_text):
         templates_string += f"| **{idx}** | `{name}` | **{times}** | **{avg}** |\n"
 
     with open("Build_Stats.md", "w") as f:
-        f.write(f"# Build History\n"
-        f"NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)"
+        f"- [Build History]({WIKI_PAGE}#build-history)\n"
+        f"- [Past Builds]({WIKI_PAGE}#past-builds)\n"
+        f"- [Templates that took longest to instantiate]({WIKI_PAGE}#templates-that-took-longest-to-instantiate)\n"
+        "***\n"
+        f"# Build History\n"
+        f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)**\n <br><br>"
         f"[![](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})\n"
         "## Past Builds\n"
         f"{last_builds} \n"
