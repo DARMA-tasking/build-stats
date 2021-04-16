@@ -6,9 +6,14 @@ inputs:
   github_personal_token:
     description: 'Github personal access token used to push graph to remote wiki repo'
     required: true
+  build_stats_output:
+    description: 'Wiki repo directory for generated build data. Defaults to root directory'
   build_times_filename:
     description: 'Filename where the previous build times are stored. File format should be CSV'
     default: 'build_times.csv'
+  build_result_filename:
+    description: 'Path to ClangBuildAnalyzer file (txt format)'
+    default: 'build_result.txt'
   graph_filename:
     description: 'Filename for the generated graph that will be pushed to the wiki repo'
     default: 'graph.png'

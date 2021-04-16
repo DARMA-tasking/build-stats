@@ -76,9 +76,9 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $INPUT_RUN_NUMBER
+    python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $GITHUB_RUN_NUMBER
 
-    cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_RUN_NUMBER"
+    cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
     python3 /generate_wiki_page.py
 

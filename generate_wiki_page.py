@@ -137,7 +137,11 @@ def create_md_page(last_builds, templates_text):
     for idx, (name, times, avg)  in templates_text.items():
         templates_string += f"| **{idx}** | `{name}` | **{times}** | **{avg}** |\n"
 
-    with open("Build_Stats.md", "w") as f:
+    PAGE_NAME = "Build_Stats"
+    with open(f"{PAGE_NAME}.md", "w") as f:
+        WIKI_PAGE = f"https://github.com/{REPO_NAME}/wiki/{PAGE_NAME}"
+
+        f.write(f""
         f"- [Build History]({WIKI_PAGE}#build-history)\n"
         f"- [Past Builds]({WIKI_PAGE}#past-builds)\n"
         f"- [Templates that took longest to instantiate]({WIKI_PAGE}#templates-that-took-longest-to-instantiate)\n"
