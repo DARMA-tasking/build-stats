@@ -12,7 +12,7 @@ GRAPH_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_GRAPH_FILENAME')}"
 BADGE_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}"
 
 NUM_TOP_TEMPLATES = 15
-
+REPO_NAME = os.getenv('GITHUB_REPOSITORY')
 
 def prepare_data():
     templates_total_times = []
@@ -96,7 +96,6 @@ def convert_time(time_in_sec):
     return f"{time_in_sec//60}min {time_in_sec%60}sec"
 
 def generate_last_build_table():
-    REPO_NAME = os.getenv('GITHUB_REPOSITORY')
     PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
     df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
     last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
@@ -140,13 +139,14 @@ def create_md_page(last_builds, templates_text):
 
     with open("Build_Stats.md", "w") as f:
         f.write(f"# Build History\n"
-        f"[![](https://github.com/JacobDomagala/TestAction/wiki/{GRAPH_FILENAME})](https://github.com/JacobDomagala/TestAction/wiki/{GRAPH_FILENAME})\n"
+        f"NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)"
+        f"[![](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})\n"
         "## Past Builds\n"
         f"{last_builds} \n"
         "*** \n"
         "# Build stats\n"
         "## Templates that took longest to instantiate \n"
-        f"[![](https://github.com/JacobDomagala/TestAction/wiki/{EXP_TEMPLATE_DIR})](https://github.com/JacobDomagala/TestAction/wiki/{EXP_TEMPLATE_DIR})\n"
+        f"[![](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_DIR})](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_DIR})\n"
         f"{templates_string}"
         "***"
         )
