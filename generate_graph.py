@@ -5,6 +5,8 @@ import requests
 from datetime import date
 import pandas as pd
 
+OUTPUT_DIR = os.getenv('INPUT_BUILD_STATS_OUTPUT')
+
 # Convert the 'real' time duration from time command output to seconds
 def extract_build_time(in_time):
     time_in_min = int(in_time[0: in_time.index("m")])
@@ -27,24 +29,35 @@ def prepare_data():
     new_run_num = int(parser.parse_args().run_num)
     new_date = date.today().strftime("%d %B %Y")
 
+    commit_id = os.getenv('GITHUB_SHA')
+    run_number = os.getenv('GITHUB_RUN_NUMBER')
+    built_int_head = os.getenv('GITHUB_HEAD_REF')
+    built_int_base = os.getenv('GITHUB_BASE_REF')
+    built_int_ref = os.getenv('GITHUB_REF')
+
+    print(f" Built in varaibles = GITHUB_RUN_NUMBER = {run_number} GITHUB_SHA = {commit_id} GITHUB_HEAD_REF = {built_int_head}"\
+        f"GITHUB_BASE_REF = {built_int_base} GITHUB_REF = {built_int_ref}")
+
     vt_total_time_seconds = extract_build_time(vt_build_time)
     tests_total_time_seconds = extract_build_time(tests_and_examples_build_time)
 
-    PREVIOUS_BUILDS_FILENAME = os.getenv('INPUT_BUILD_TIMES_FILENAME')
+    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
     df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
     last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
     updated = last_builds.append(pd.DataFrame(
-        [[vt_total_time_seconds, tests_total_time_seconds, new_run_num, new_date]], columns=['vt', 'tests', 'run_num', 'date']))
+        [[vt_total_time_seconds, tests_total_time_seconds, new_run_num, new_date, commit_id]], columns=['vt', 'tests', 'run_num', 'date', 'commit']))
 
     # Data to be plotted
     vt_timings = updated['vt'].tolist()
     tests_timings = updated['tests'].tolist()
     run_nums = updated['run_num'].tolist()
     dates = updated['date'].tolist()
+    commits = updated['commit'].tolist()
 
     print(f"VT build times = {vt_timings}")
     print(f"Tests and examples build times = {tests_timings}")
     print(f"run nums = {run_nums}")
+    print(f"commits = {commits}")
 
     last_n_runs = updated.shape[0]
 
@@ -65,10 +78,10 @@ def generate_graph(vt, tests, run_nums, dates):
     BIGGER_SIZE = 35
 
     plt.rc('font', size=MEDIUM_SIZE, family='serif')
-    plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=SMALL_SIZE)
-    plt.rc('xtick', labelsize=SMALL_SIZE)
-    plt.rc('ytick', labelsize=SMALL_SIZE)
-    plt.rc('legend', fontsize=SMALL_SIZE)
+    plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
+    plt.rc('xtick', labelsize=MEDIUM_SIZE)
+    plt.rc('ytick', labelsize=MEDIUM_SIZE)
+    plt.rc('legend', fontsize=MEDIUM_SIZE)
     plt.rc('figure', titlesize=BIGGER_SIZE)
 
     GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
@@ -87,11 +100,12 @@ def generate_graph(vt, tests, run_nums, dates):
 
     ax1.plot(run_nums, total_timings, color='b', marker='o', label='total')
     ax2.plot(run_nums, vt_timings, color='r', marker='s', label='vt-lib')
-    ax3.plot(run_nums, tests_timings, color='g', marker='d', label='tests')
+    ax3.plot(run_nums, tests_timings, color='g', marker='d', label='tests and examples')
 
     set_common_axis_data([ax1, ax2, ax3])
+    plt.tight_layout()
 
-    plt.savefig(os.getenv('INPUT_GRAPH_FILENAME'))
+    plt.savefig(f"{OUTPUT_DIR}/{os.getenv('INPUT_GRAPH_FILENAME')}")
 
 
 def generate_badge(vt, tests):
@@ -111,7 +125,7 @@ def generate_badge(vt, tests):
     print(f"Downloading badge with URL = {url}")
     r = requests.get(url)
 
-    open(os.getenv('INPUT_BADGE_FILENAME'), 'wb').write(r.content)
+    open(f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}", 'wb').write(r.content)
 
 if __name__ == "__main__":
     [vt, tests, run_nums, dates] = prepare_data()

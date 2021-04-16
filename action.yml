@@ -33,17 +33,13 @@ inputs:
     default: Build time (min)
   graph_width:
     description: 'Graph width in inches'
-    default: 6.4
+    default: 19
   graph_height:
     description: 'Graph height in inches'
-    default: 4.8
+    default: 15
   commit_message:
     description: 'Commit message for wiki page'
     default: Push build time graph
-  run_number:
-    description: 'Run number of the current workflow'
-    default: ${{github.run_number}}
-
 
 runs:
   using: "docker"

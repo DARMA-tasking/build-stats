@@ -19,8 +19,8 @@ RUN chmod +x /entrypoint.sh
 COPY generate_graph.py /
 RUN chmod +x /generate_graph.py
 
-COPY generate_build_info.py /
-RUN chmod +x /generate_build_info.py
+COPY generate_wiki_page.py /
+RUN chmod +x /generate_wiki_page.py
 
 COPY build_vt.sh /
 RUN chmod +x /build_vt.sh

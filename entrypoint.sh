@@ -78,9 +78,9 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # Generate graph
     python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $INPUT_RUN_NUMBER
 
-    cp "$GITHUB_WORKSPACE/build_result.txt" ./build_stats/
+    cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_RUN_NUMBER"
 
-    python3 /generate_build_info.py -i "build_stats/build_result.txt"
+    python3 /generate_wiki_page.py
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
