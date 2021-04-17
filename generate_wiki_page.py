@@ -118,7 +118,8 @@ def generate_last_build_table():
         "<th>Commit SHA</th>"\
         "</tr>"
 
-    for i in range(-1, -last_builds.shape[0], -1):
+    # Put most recent on top, so iterate from the last
+    for i in range(-1, -(last_builds.shape[0] + 1), -1):
         last_builds_table += f"<tr><td><b>{run_nums[i]}</b></td>"\
             f"<td>{dates[i]}</td>"\
             f"<td>{convert_time(total_timings[i])}</td>"\
@@ -133,11 +134,11 @@ def generate_last_build_table():
 def create_md_page(last_builds, templates_text):
 
     templates_string = "| Label | Name | Times | Avg (ms) |\n"\
-        "|---|:---:|---|---|\n"
+        "|:---:|:---:|---|---|\n"
     for idx, (name, times, avg)  in templates_text.items():
         templates_string += f"| **{idx}** | `{name}` | **{times}** | **{avg}** |\n"
 
-    PAGE_NAME = "Build_Stats"
+    PAGE_NAME = "Build-Stats"
     with open(f"{PAGE_NAME}.md", "w") as f:
         WIKI_PAGE = f"https://github.com/{REPO_NAME}/wiki/{PAGE_NAME}"
 
