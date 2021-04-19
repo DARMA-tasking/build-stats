@@ -73,12 +73,23 @@ def set_common_axis_data(iterable_axis):
         ax.set_ylabel(os.getenv('INPUT_Y_LABEL'))
 
 def annotate(ax, x_list, y_list):
-    percentage_diff = round(((y_list[-1] - y_list[-2]) / y_list[-2]) * 100.0)
+
+    avg_y = sum(y_list) / len(y_list)
+
+    previous_value = y_list[-2]
+    current_value = y_list[-1]
+
+    percentage_diff = round(((current_value - previous_value) / previous_value) * 100.0)
     color = "red" if percentage_diff > 0 else "green"
-    offset_x = x_list[-1] / 100.0
-    offset_y = y_list[-1] / 100.0
+    x_pos = x_list[-1] + (x_list[-1] / 100.0)
+
+    y_offset = avg_y / 100.0
+    y_pos = current_value - y_offset if current_value > avg_y else current_value + y_offset
+
     text = f'+{percentage_diff}%' if color == "red" else f'{percentage_diff}%'
-    ax.annotate(text, xy=(x_list[-1] + offset_x, y_list[-1] - offset_y), color=color, weight='bold')
+    print(f"Previous value = {previous_value}, Current value = {current_value}, Percentage diff = {percentage_diff}, \
+        xy={x_pos}, {y_pos}, Color = {color}")
+    ax.annotate(text, xy=(x_pos, y_pos), color=color, weight='bold')
 
 def generate_graph(vt, tests, run_nums, dates):
     SMALL_SIZE = 15
