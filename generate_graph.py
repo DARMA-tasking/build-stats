@@ -72,6 +72,14 @@ def set_common_axis_data(iterable_axis):
         ax.grid(True)
         ax.set_ylabel(os.getenv('INPUT_Y_LABEL'))
 
+def annotate(ax, x_list, y_list):
+    percentage_diff = round(((y_list[-1] - y_list[-2]) / y_list[-2]) * 100.0)
+    color = "red" if percentage_diff > 0 else "green"
+    offset_x = x_list[-1] / 100.0
+    offset_y = y_list[-1] / 100.0
+    text = f'+{percentage_diff}%' if color == "red" else f'{percentage_diff}%'
+    ax.annotate(text, xy=(x_list[-1] + offset_x, y_list[-1] - offset_y), color=color, weight='bold')
+
 def generate_graph(vt, tests, run_nums, dates):
     SMALL_SIZE = 15
     MEDIUM_SIZE = 25
@@ -99,8 +107,12 @@ def generate_graph(vt, tests, run_nums, dates):
     plt.xlabel(os.getenv('INPUT_X_LABEL'))
 
     ax1.plot(run_nums, total_timings, color='b', marker='o', label='total')
-    ax2.plot(run_nums, vt_timings, color='r', marker='s', label='vt-lib')
-    ax3.plot(run_nums, tests_timings, color='g', marker='d', label='tests and examples')
+    ax2.plot(run_nums, vt_timings, color='m', marker='s', label='vt-lib')
+    ax3.plot(run_nums, tests_timings, color='c', marker='d', label='tests and examples')
+
+    annotate(ax1, run_nums, total_timings)
+    annotate(ax2, run_nums, vt_timings)
+    annotate(ax3, run_nums, tests_timings)
 
     set_common_axis_data([ax1, ax2, ax3])
     plt.tight_layout()
