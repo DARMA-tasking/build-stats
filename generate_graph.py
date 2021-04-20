@@ -35,9 +35,6 @@ def prepare_data():
     built_int_base = os.getenv('GITHUB_BASE_REF')
     built_int_ref = os.getenv('GITHUB_REF')
 
-    print(f" Built in varaibles = GITHUB_RUN_NUMBER = {run_number} GITHUB_SHA = {commit_id} GITHUB_HEAD_REF = {built_int_head}"\
-        f"GITHUB_BASE_REF = {built_int_base} GITHUB_REF = {built_int_ref}")
-
     vt_total_time_seconds = extract_build_time(vt_build_time)
     tests_total_time_seconds = extract_build_time(tests_and_examples_build_time)
 

@@ -38,10 +38,10 @@ inputs:
     default: Build time (min)
   graph_width:
     description: 'Graph width in inches'
-    default: 19
+    default: 20
   graph_height:
     description: 'Graph height in inches'
-    default: 15
+    default: 20
   commit_message:
     description: 'Commit message for wiki page'
     default: Push build time graph

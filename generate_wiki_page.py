@@ -15,37 +15,75 @@ EXP_HEADERS_DIR = f"{OUTPUT_DIR}/most_expensive_headers.png"
 GRAPH_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_GRAPH_FILENAME')}"
 BADGE_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}"
 
-NUM_TOP_RESULTS = 15
+NUM_TOP_RESULTS = 25
 REPO_NAME = os.getenv('GITHUB_REPOSITORY')
 
-# Example - > 26549 ms: some<template> (306 times, avg 86 ms)
-def get_name_times_avg(idx, lines):
+
+def get_name_times_avg(lines):
+    """
+    Example input:
+    26549 ms: some<template> (306 times, avg 86 ms)
+    25000 ms: some<other_template> (500 times, avg 50 ms)
+
+    Output:
+    total_times = [26549, 25000]
+    name_times_avg = {0: (some<template>, 306, 86), 1: (some<other_template>, 500, 50)}
+    """
+    AVG_MS_THRESHOLD = 20
+
     total_times = []
     name_times_avg = dict()
 
-    for index, template in enumerate(lines[idx + 1 : idx + NUM_TOP_RESULTS]):
-        delimiter = template.index("ms")
-        total_times.append(int(template[ : delimiter]))
+    index = 0
 
-        tmp_text = template[delimiter + 3 : ]
+    for line in lines:
+        # Stop if we parsed all lines for given action or we've reached the limit
+        if not line.endswith("ms)") or index >= NUM_TOP_RESULTS:
+            break
+
+        avg_time = int(line[line.rfind("avg") + 3 : line.rfind("ms")])
+
+        # Don't include very cheap templates
+        if avg_time < AVG_MS_THRESHOLD:
+            continue
+
+        # Total time spent for given template/function
+        delimiter = line.index("ms")
+        total_times.append(int(line[ : delimiter]))
+
+        # Template/function name
+        tmp_text = line[delimiter + 3 : ]
         end_of_name = tmp_text.rfind("(")
         name = tmp_text[:end_of_name - 1]
 
+        # Number of times given template/function was used
         times_and_avg = tmp_text[end_of_name + 1 : ]
         times_used = int(times_and_avg[:times_and_avg.index(" ")])
-        avg_time = int(times_and_avg[times_and_avg.index("avg") + 3 : times_and_avg.index("ms")])
 
         name_times_avg[index] = (name, times_used, avg_time)
+        index += 1
 
     return total_times, name_times_avg
 
-def get_headers(idx, lines):
+def get_headers(lines):
+    """
+    Example input:
+    26549 ms: some_header.h (included 237 times, avg 506 ms), included via:
+        ... (some files)
+    2400 ms: some_other_header.h (included 100 times, avg 240 ms), included via:
+        ... (some files)
+
+    Output:
+    header_times = [26549, 2400]
+    name_included_avg = {0: (some_header.h, 237, 506), 1: (some_other_header.h, 100, 240)}
+    """
+
     header_times = []
     name_included_avg = dict()
 
     index = 0
 
-    for line in lines[idx + 1 : ]:
+    for line in lines:
         if line.endswith("included via:"):
             delimiter = line.index("ms: ")
             header_times.append(int(line[ : delimiter]))
@@ -71,6 +109,8 @@ def generate_name_times_avg_table(templates_text):
     templates_string = "| Label | Name | Times | Avg (ms) |\n"\
         "|---|:---:|---|---|\n"
     for idx, (name, times, avg)  in templates_text.items():
+        # Escape '|' to not break markdown table
+        name = name.replace("|", "\|")
         templates_string += f"| **{idx}** | `{name}` | **{times}** | **{avg}** |\n"
 
     return templates_string
@@ -93,13 +133,13 @@ def prepare_data():
 
         for idx, line in enumerate(lines):
             if line.startswith("**** Templates that took longest to instantiate:"):
-                templates_total_times, templates = get_name_times_avg(idx, lines)
+                templates_total_times, templates = get_name_times_avg(lines[idx + 1:])
 
             if line.startswith("**** Template sets that took longest to instantiate:"):
-                template_sets_times, template_sets = get_name_times_avg(idx, lines)
+                template_sets_times, template_sets = get_name_times_avg(lines[idx + 1:])
 
             if line.startswith("*** Expensive headers:"):
-                headers_times, headers = get_headers(idx, lines)
+                headers_times, headers = get_headers(lines[idx + 1:])
 
 
     return templates, template_sets, headers, templates_total_times, template_sets_times, headers_times
