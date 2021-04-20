@@ -7,8 +7,14 @@ import pandas as pd
 
 OUTPUT_DIR = os.getenv('INPUT_BUILD_STATS_OUTPUT')
 
-# Convert the 'real' time duration from time command output to seconds
 def extract_build_time(in_time):
+    """
+    Convert the duration from linux's time command format to seconds
+
+    Example input: 07m44.068s
+    Output: 464
+    """
+
     time_in_min = int(in_time[0: in_time.index("m")])
     time_in_seconds = int(in_time[in_time.index("m") + 1: in_time.index(".")])
     total_time_seconds = time_in_seconds + time_in_min * 60
@@ -19,6 +25,8 @@ def extract_build_time(in_time):
     return total_time_seconds
 
 def prepare_data():
+    """ Parse the input data, read CSV file and append it with the new results """
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-vt', '--vt_time', help='VT lib build time', required=True)
     parser.add_argument('-te', '--tests_examples_time', help='Tests&Examples build time', required=True)
@@ -70,6 +78,7 @@ def set_common_axis_data(iterable_axis):
         ax.set_ylabel(os.getenv('INPUT_Y_LABEL'))
 
 def annotate(ax, x_list, y_list):
+    """ Annotate build time graph with percentage change between current build time and the previous one. """
 
     avg_y = sum(y_list) / len(y_list)
 

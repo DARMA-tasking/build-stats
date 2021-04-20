@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# set -euo pipefail
-set -x
-
+set -euo pipefail
 
 cd "$GITHUB_WORKSPACE"
-ls
 
 if [ -z "$GITHUB_ACTOR" ]; then
     echo "GITHUB_ACTOR environment variable is not set"
@@ -22,20 +19,7 @@ if [ -z "${INPUT_GITHUB_PERSONAL_TOKEN}" ]; then
     exit 1
 fi
 
-
-# include-what-you-use
-# wget https://include-what-you-use.org/downloads/include-what-you-use-0.14.src.tar.gz
-# tar xzf include-what-you-use-0.14.src.tar.gz --one-top-level=include-what-you-use --strip-components 1
-# cd include-what-you-use
-# mkdir build && cd build
-# cmake .. && make && make install
-# cd "$GITHUB_WORKSPACE"
-
 VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
-
-# Build VT in a standard way to measure build time
-# /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build
-# build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
 
 # ClangBuildAnalyzer
 git clone https://github.com/aras-p/ClangBuildAnalyzer
@@ -46,10 +30,6 @@ cmake .. && make
 chmod +x ClangBuildAnalyzer
 ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
 cd "$GITHUB_WORKSPACE"
-
-
-# Clean previous build
-#rm -rf $GITHUB_WORKSPACE/build
 
 # Build VT lib
 /build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" vt
