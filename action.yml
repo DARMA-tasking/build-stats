@@ -1,6 +1,6 @@
-name: "Graph build times to wiki page"
+name: "Generate build stats"
 description: |
- "GitHub action that generates a graph of build times and pushes it to project's wiki page"
+ "GitHub action that generates a Markdown file with build statistics"
 
 inputs:
   github_personal_token:
