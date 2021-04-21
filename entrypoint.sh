@@ -32,15 +32,15 @@ ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
 cd "$GITHUB_WORKSPACE"
 
 # Build VT lib
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" vt
-vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
+/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
+vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
 # Build tests and examples
-/build_vt.sh $GITHUB_WORKSPACE $GITHUB_WORKSPACE/build "-ftime-trace" all
-tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' $VT_BUILD_FOLDER/build_time.txt)
+/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
+tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
 cp /ClangBuildAnalyzer.ini .
-$ClangBuildTool --all $VT_BUILD_FOLDER vt-build
+$ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
 $ClangBuildTool --analyze vt-build > build_result.txt
 
 
@@ -56,7 +56,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    python3 /generate_graph.py -vt $vt_build_time -te $tests_and_examples_build -r $GITHUB_RUN_NUMBER
+    python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
     cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
