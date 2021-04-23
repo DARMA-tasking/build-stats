@@ -1,17 +1,19 @@
-name: "Graph build times to wiki page"
+name: "Generate build stats"
 description: |
- "GitHub action that generates a graph of build times and pushes it to project's wiki page"
+ "GitHub action that generates a Markdown file with build statistics"
 
 inputs:
   github_personal_token:
     description: 'Github personal access token used to push graph to remote wiki repo'
     required: true
-  last_build_time:
-    description: 'Last build time. Format example 20m40.00s'
-    required: true
+  build_stats_output:
+    description: 'Wiki repo directory for generated build data. Defaults to root directory'
   build_times_filename:
     description: 'Filename where the previous build times are stored. File format should be CSV'
     default: 'build_times.csv'
+  build_result_filename:
+    description: 'Path to ClangBuildAnalyzer file (txt format)'
+    default: 'build_result.txt'
   graph_filename:
     description: 'Filename for the generated graph that will be pushed to the wiki repo'
     default: 'graph.png'
@@ -36,17 +38,13 @@ inputs:
     default: Build time (min)
   graph_width:
     description: 'Graph width in inches'
-    default: 6.4
+    default: 20
   graph_height:
     description: 'Graph height in inches'
-    default: 4.8
+    default: 20
   commit_message:
     description: 'Commit message for wiki page'
     default: Push build time graph
-  run_number:
-    description: 'Run number of the current workflow'
-    default: ${{github.run_number}}
-
 
 runs:
   using: "docker"
