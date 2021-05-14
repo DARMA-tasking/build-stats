@@ -39,10 +39,19 @@ vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.t
 /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
 tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
-cp /ClangBuildAnalyzer.ini .
-$ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
-$ClangBuildTool --analyze vt-build > build_result.txt
+# cp /ClangBuildAnalyzer.ini .
+# $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
+# $ClangBuildTool --analyze vt-build > build_result.txt
 
+hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong' --export-csv ping-pong.csv
+hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/memory_checker' --export-csv memory-checker.csv
+hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/comm_cost_curve' --export-csv comm-cost-curve.csv
+
+cat ping-pong.csv
+cat memory-checker.csv
+cat comm-cost-curve.csv
+
+exit 0
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -62,9 +71,9 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
     python3 /generate_wiki_page.py
 
-    git add .
-    git commit -m "$INPUT_COMMIT_MESSAGE"
-    git push --set-upstream "$WIKI_URL" master
+    # git add .
+    # git commit -m "$INPUT_COMMIT_MESSAGE"
+    # git push --set-upstream "$WIKI_URL" master
 ) || exit 1
 
 rm -rf "$tmp_dir"
