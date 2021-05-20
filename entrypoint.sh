@@ -51,6 +51,8 @@ cat ping-pong.csv
 cat memory-checker.csv
 cat comm-cost-curve.csv
 
+heaptrack mpirun -n 2 $GITHUB_WORKSPACE/build/vt/examples/jacobi2d_vt
+
 exit 0
 
 # GENERATE BUILD TIME GRAPH
