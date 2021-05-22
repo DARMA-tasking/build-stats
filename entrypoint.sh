@@ -56,7 +56,7 @@ cat comm-cost-curve.csv
 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt
 heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_flame
 
-"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" jacobi_1_node_flame > test.svg
+"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" jacobi_1_node_flame --title="jacobi2d_vt" --width=1920 > test.svg
 
 
 # GENERATE BUILD TIME GRAPH
