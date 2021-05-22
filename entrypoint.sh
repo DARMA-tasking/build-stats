@@ -21,6 +21,8 @@ fi
 
 VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
+git clone https://github.com/brendangregg/FlameGraph.git
+
 # ClangBuildAnalyzer
 git clone https://github.com/aras-p/ClangBuildAnalyzer
 cd ClangBuildAnalyzer
@@ -51,9 +53,11 @@ cat ping-pong.csv
 cat memory-checker.csv
 cat comm-cost-curve.csv
 
-heaptrack mpirun -n 2 $GITHUB_WORKSPACE/build/vt/examples/jacobi2d_vt
+heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt
+heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_flame
 
-exit 0
+"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" jacobi_1_node_flame > test.svg
+
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -67,15 +71,16 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
+    # python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
-    cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
+    # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
-    python3 /generate_wiki_page.py
+    cp "$GITHUB_WORKSPACE/test.svg" "./perf_tests/"
+    # python3 /generate_wiki_page.py
 
-    # git add .
-    # git commit -m "$INPUT_COMMIT_MESSAGE"
-    # git push --set-upstream "$WIKI_URL" master
+    git add .
+    git commit -m "$INPUT_COMMIT_MESSAGE"
+    git push --set-upstream "$WIKI_URL" master
 ) || exit 1
 
 rm -rf "$tmp_dir"
