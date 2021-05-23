@@ -46,18 +46,21 @@ tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/b
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
 hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong' --export-csv ping-pong.csv
-hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/memory_checker' --export-csv memory-checker.csv
 hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/comm_cost_curve' --export-csv comm-cost-curve.csv
 
 cat ping-pong.csv
-cat memory-checker.csv
 cat comm-cost-curve.csv
 
 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt
 heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_flame
 
-"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" jacobi_1_node_flame --title="jacobi2d_vt" --width=1920 > test.svg
+"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt" --width=1920 jacobi_1_node_flame > test.svg
 
+
+heaptrack $GITHUB_WORKSPACE/build/vt/tests/memory_checker
+heaptrack_print -f $(ls | grep "heaptrack.memory_checker.*.gz") -F memory_checker_flame
+
+"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="memory_checker" --width=1920 memory_checker_flame > test_another.svg
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -76,6 +79,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
     cp "$GITHUB_WORKSPACE/test.svg" "./perf_tests/"
+    cp "$GITHUB_WORKSPACE/test_another.svg" "./perf_tests/"
     # python3 /generate_wiki_page.py
 
     git add .
