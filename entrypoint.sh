@@ -45,11 +45,10 @@ tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/b
 # $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
-hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong' --export-csv ping-pong.csv
-hyperfine 'mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/comm_cost_curve' --export-csv comm-cost-curve.csv
-
-cat ping-pong.csv
-cat comm-cost-curve.csv
+mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_quiet
+cat ./test_ping_pong.csv
+mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/jacobi2d_perf --vt_quiet
+cat ./jacobi2d_vt.csv
 
 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt
 heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_flame
@@ -60,7 +59,7 @@ heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_fl
 heaptrack $GITHUB_WORKSPACE/build/vt/tests/memory_checker
 heaptrack_print -f $(ls | grep "heaptrack.memory_checker.*.gz") -F memory_checker_flame
 
-"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="memory_checker" --width=1920 memory_checker_flame > test_another.svg
+"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="memory_checker" --width=1920 --colors mem --countname allocations < memory_checker_flame > test_another.svg
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
