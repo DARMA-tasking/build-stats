@@ -45,21 +45,31 @@ tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/b
 # $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
-mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_quiet
+mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_quiet --vt_perf_gen_file
 cat ./test_ping_pong.csv
-mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/jacobi2d_perf --vt_quiet
-cat ./jacobi2d_vt.csv
 
-heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt
-heaptrack_print -f $(ls | grep "heaptrack.jacobi2d_vt.*.gz") -F jacobi_1_node_flame
+# Generate flamegraphs
+# Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
 
-"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt" --width=1920 jacobi_1_node_flame > test.svg
+mpirun -n 2 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt 10 10 200
+jacobi_output_list=$(ls | grep "heaptrack.jacobi2d_vt.*.gz")
 
+node_num=0
+for file in ${jacobi_output_list}
+do
+    file_name="flame$node_num"
 
-heaptrack $GITHUB_WORKSPACE/build/vt/tests/memory_checker
-heaptrack_print -f $(ls | grep "heaptrack.memory_checker.*.gz") -F memory_checker_flame
+    heaptrack_print -f "$file" -F "alloc_count_$file_name"
+    heaptrack_print -f "$file" -F "alloc_size_$file_name" --flamegraph-cost-type allocated
 
-"$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="memory_checker" --width=1920 --colors mem --countname allocations < memory_checker_flame > test_another.svg
+    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num" --width=1920 --colors mem\
+     --countname allocations < "alloc_count_$file_name" > "flame_heaptrack_jacobi_alloc_count_$node_num.svg"
+
+    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num" --width=1920 --colors mem\
+     --countname allocations < "alloc_size_$file_name" > "flame_heaptrack_jacobi_alloc_size_$node_num.svg"
+
+    ((node_num=node_num+1))
+done
 
 # GENERATE BUILD TIME GRAPH
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
@@ -77,8 +87,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
     # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
-    cp "$GITHUB_WORKSPACE/test.svg" "./perf_tests/"
-    cp "$GITHUB_WORKSPACE/test_another.svg" "./perf_tests/"
+    eval cp "$GITHUB_WORKSPACE/flame_heaptrack*" "./perf_tests/"
     # python3 /generate_wiki_page.py
 
     git add .
