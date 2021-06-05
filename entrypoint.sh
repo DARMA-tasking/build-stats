@@ -59,14 +59,20 @@ for file in ${jacobi_output_list}
 do
     file_name="flame$node_num"
 
+    # number of allocations
     heaptrack_print -f "$file" -F "alloc_count_$file_name"
-    heaptrack_print -f "$file" -F "alloc_size_$file_name" --flamegraph-cost-type allocated
-
-    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num" --width=1920 --colors mem\
+    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num number of allocations" --width=1920 --colors mem\
      --countname allocations < "alloc_count_$file_name" > "flame_heaptrack_jacobi_alloc_count_$node_num.svg"
 
-    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num" --width=1920 --colors mem\
-     --countname allocations < "alloc_size_$file_name" > "flame_heaptrack_jacobi_alloc_size_$node_num.svg"
+    # size of allocations
+    heaptrack_print -f "$file" -F "alloc_size_$file_name" --flamegraph-cost-type allocated
+    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num number of bytes allocated" --width=1920 --colors mem\
+     --countname bytes < "alloc_size_$file_name" > "flame_heaptrack_jacobi_alloc_size_$node_num.svg"
+
+    # leaked
+    heaptrack_print -f "$file" -F "leaked_$file_name" --flamegraph-cost-type leaked
+    "$GITHUB_WORKSPACE/FlameGraph/flamegraph.pl" --title="jacobi2d_vt node:$node_num number of bytes leaked" --width=1920 --colors mem\
+     --countname bytes < "leaked_$file_name" > "flame_heaptrack_jacobi_leaked_$node_num.svg"
 
     ((node_num=node_num+1))
 done
