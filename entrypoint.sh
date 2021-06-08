@@ -46,7 +46,8 @@ tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/b
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
 mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_quiet --vt_perf_gen_file
-cat ./test_ping_pong.csv
+cat ./test_ping_pong_mem.csv
+cat ./test_ping_pong_time.csv
 
 # Generate flamegraphs
 # Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
