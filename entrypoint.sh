@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -euo pipefail
+# set -euo pipefail
+set -x
 
 cd "$GITHUB_WORKSPACE"
 
@@ -23,31 +24,60 @@ VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
 git clone https://github.com/brendangregg/FlameGraph.git
 
-# ClangBuildAnalyzer
-git clone https://github.com/aras-p/ClangBuildAnalyzer
-cd ClangBuildAnalyzer
-mkdir build && cd build
+# # ClangBuildAnalyzer
+# git clone https://github.com/aras-p/ClangBuildAnalyzer
+# cd ClangBuildAnalyzer
+# mkdir build && cd build
 
-cmake .. && make
-chmod +x ClangBuildAnalyzer
-ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
-cd "$GITHUB_WORKSPACE"
+# cmake .. && make
+# chmod +x ClangBuildAnalyzer
+# ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
+# cd "$GITHUB_WORKSPACE"
 
 # Build VT lib
-/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
-vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
+# /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
+# vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
 # Build tests and examples
-/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
-tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
+# /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
+# tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
 # cp /ClangBuildAnalyzer.ini .
 # $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
-mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_quiet --vt_perf_gen_file
-cat ./test_ping_pong_mem.csv
-cat ./test_ping_pong_time.csv
+#####################
+## PERFORMANCE TESTS
+#####################
+
+export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
+/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "" all
+
+cd "$GITHUB_WORKSPACE/build/vt"
+
+ctest --output-on-failure -L perf_test
+echo $?
+
+perf_test_memory_files=$(ls ./tests/ | grep "_mem.csv")
+
+for file in $perf_test_memory_files
+do
+    name=$(echo $file | sed  -e "s/_mem.csv$//")
+    echo "Memory file $file with name $name"
+done
+
+perf_test_time_files=$(ls ./tests/ | grep "_time.csv")
+
+for file in $perf_test_time_files
+do
+    echo "Time file $file"
+done
+
+# mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_perf_gen_file
+# cat ./tests/test_ping_pong_mem.csv
+# cat ./tests/test_ping_pong_time.csv
+
+cd -
 
 # Generate flamegraphs
 # Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
