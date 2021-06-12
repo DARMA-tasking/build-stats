@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set -euo pipefail
-set -x
+# set -x
 
 cd "$GITHUB_WORKSPACE"
 
@@ -22,6 +22,10 @@ fi
 
 VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
+########################
+## CLONE DEPENDENCIES ##
+########################
+
 git clone https://github.com/brendangregg/FlameGraph.git
 
 # # ClangBuildAnalyzer
@@ -33,6 +37,10 @@ git clone https://github.com/brendangregg/FlameGraph.git
 # chmod +x ClangBuildAnalyzer
 # ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
 # cd "$GITHUB_WORKSPACE"
+
+##################
+## BUILD VT LIB ##
+##################
 
 # Build VT lib
 # /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
@@ -46,9 +54,9 @@ git clone https://github.com/brendangregg/FlameGraph.git
 # $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
 # $ClangBuildTool --analyze vt-build > build_result.txt
 
-#####################
-## PERFORMANCE TESTS
-#####################
+#######################
+## PERFORMANCE TESTS ##
+#######################
 
 export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
 /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "" all
@@ -56,32 +64,14 @@ export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
 cd "$GITHUB_WORKSPACE/build/vt"
 
 ctest --output-on-failure -L perf_test
-echo $?
-
-perf_test_memory_files=$(ls ./tests/ | grep "_mem.csv")
-
-for file in $perf_test_memory_files
-do
-    name=$(echo $file | sed  -e "s/_mem.csv$//")
-    echo "Memory file $file with name $name"
-done
-
-perf_test_time_files=$(ls ./tests/ | grep "_time.csv")
-
-for file in $perf_test_time_files
-do
-    echo "Time file $file"
-done
-
-# mpirun -n 2 $GITHUB_WORKSPACE/build/vt/tests/ping_pong --vt_perf_gen_file
-# cat ./tests/test_ping_pong_mem.csv
-# cat ./tests/test_ping_pong_time.csv
 
 cd -
 
-# Generate flamegraphs
-# Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
+##########################
+## GENERATE FLAMEGRAPHS ##
+##########################
 
+# Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
 mpirun -n 2 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt 10 10 200
 jacobi_output_list=$(ls | grep "heaptrack.jacobi2d_vt.*.gz")
 
@@ -108,7 +98,9 @@ do
     ((node_num=node_num+1))
 done
 
-# GENERATE BUILD TIME GRAPH
+#####################
+## GENERATE GRAPHS ##
+#####################
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 (
     WIKI_URL="https://${INPUT_GITHUB_PERSONAL_TOKEN}@github.com/$GITHUB_REPOSITORY.wiki.git"
@@ -121,6 +113,19 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
     # Generate graph
     # python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
+
+    perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv")
+
+    for file in $perf_test_files
+    do
+        # Each test generates both time/mem files
+        time_file=$(echo $file | sed  -e "s/_time.csv$//")
+        memory_file=$(echo $file | sed  -e "s/_mem.csv$//")
+
+        echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $name"
+
+        python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file
+    done
 
     # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
