@@ -116,17 +116,22 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
     perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv")
 
+    cd perf_tests
+
     for file in $perf_test_files
     do
+        name=$(echo $file | sed  -e "s/_mem.csv$//")
+
         # Each test generates both time/mem files
-        time_file=$(echo $file | sed  -e "s/_time.csv$//")
-        memory_file=$(echo $file | sed  -e "s/_mem.csv$//")
+        time_file="${name}_time.csv"
+        memory_file="${name}_mem.csv"
 
         echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $name"
 
         python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file
     done
 
+    cd -
     # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
     eval cp "$GITHUB_WORKSPACE/flame_heaptrack*" "./perf_tests/"
