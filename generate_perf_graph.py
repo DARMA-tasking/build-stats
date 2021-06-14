@@ -4,7 +4,8 @@ import os
 from datetime import date
 import pandas as pd
 
-OUTPUT_DIR = os.getenv('INPUT_BUILD_STATS_OUTPUT')
+GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
+GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
 
 def prepare_data():
     """ Parse the input data, read CSV file and append it with the new results """
@@ -29,22 +30,19 @@ def prepare_data():
 
     return time_data, memory_data
 
-def generate_time_graph(time_data):
+def set_graph_properties():
     SMALL_SIZE = 15
     MEDIUM_SIZE = 25
-    BIGGER_SIZE = 35
+    BIG_SIZE = 35
 
     plt.rc('font', size=MEDIUM_SIZE, family='serif')
     plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
     plt.rc('xtick', labelsize=MEDIUM_SIZE)
     plt.rc('ytick', labelsize=MEDIUM_SIZE)
     plt.rc('legend', fontsize=MEDIUM_SIZE)
-    plt.rc('figure', titlesize=BIGGER_SIZE)
+    plt.rc('figure', titlesize=BIG_SIZE)
 
-    GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
-    GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
-
-    # plot
+def generate_time_graph(time_data):
     fig, (ax1) = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     num_nodes = len(time_data)
@@ -71,22 +69,7 @@ def generate_time_graph(time_data):
     plt.savefig(f'{memory_data[0]["name"].any()}_time.png')
 
 def generate_memory_graph(memory_data):
-    SMALL_SIZE = 15
-    MEDIUM_SIZE = 25
-    BIGGER_SIZE = 35
-
-    plt.rc('font', size=MEDIUM_SIZE, family='serif')
-    plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
-    plt.rc('xtick', labelsize=MEDIUM_SIZE)
-    plt.rc('ytick', labelsize=MEDIUM_SIZE)
-    plt.rc('legend', fontsize=MEDIUM_SIZE)
-    plt.rc('figure', titlesize=BIGGER_SIZE)
-
-    GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
-    GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
-
-    # plot
-    fig, (ax1) = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     ax1.set_title(f'{memory_data[0]["name"].any()} memory usage')
     plt.xlabel("Iteration")
@@ -94,14 +77,8 @@ def generate_memory_graph(memory_data):
     num_nodes = len(memory_data)
     num_iter = [i for i in range(len(memory_data[0]))]
 
-    barWidth = 1.0 / (2 * num_nodes)
-    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
-
-    for node in range(num_nodes - 1):
-        bar_positions.append([x + barWidth for x in bar_positions[node]])
-
     for node in range(num_nodes):
-        ax1.bar(bar_positions[node], memory_data[node]["mem"], label=f'node {node}', width = barWidth)
+        ax1.plot(num_iter, memory_data[node]["mem"] / 1024, label=f'node {node}')
 
     ax1.legend()
     ax1.grid(True)
@@ -113,5 +90,6 @@ def generate_memory_graph(memory_data):
 
 if __name__ == "__main__":
     time_data, memory_data = prepare_data()
+    set_graph_properties()
     generate_memory_graph(memory_data)
     generate_time_graph(time_data)
