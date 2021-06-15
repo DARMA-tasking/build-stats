@@ -103,7 +103,7 @@ def generate_memory_graph(memory_data):
     num_iter = [i for i in range(len(memory_data[0]))]
 
     for node in range(num_nodes):
-        ax1.plot(num_iter, memory_data[node]["mem"] / 1024, label=f'node {node}')
+        ax1.plot(num_iter, memory_data[node]["mem"] / 1024, label=f'node {node}', linewidth=4)
 
     ax1.legend()
     ax1.grid(True)

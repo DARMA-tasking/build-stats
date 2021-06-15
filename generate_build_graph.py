@@ -50,7 +50,8 @@ def prepare_data():
     df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
     last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
     updated = last_builds.append(pd.DataFrame(
-        [[vt_total_time_seconds, tests_total_time_seconds, new_run_num, new_date, commit_id]], columns=['vt', 'tests', 'run_num', 'date', 'commit']))
+        [[vt_total_time_seconds, tests_total_time_seconds, new_run_num, new_date, commit_id]],
+        columns=['vt', 'tests', 'run_num', 'date', 'commit']))
 
     # Data to be plotted
     vt_timings = updated['vt'].tolist()
@@ -123,9 +124,9 @@ def generate_graph(vt, tests, run_nums, dates):
     ax1.set_title(f"{os.getenv('INPUT_TITLE')} ({dates[0]} - {dates[-1]})")
     plt.xlabel(os.getenv('INPUT_X_LABEL'))
 
-    ax1.plot(run_nums, total_timings, color='b', marker='o', label='total')
-    ax2.plot(run_nums, vt_timings, color='m', marker='s', label='vt-lib')
-    ax3.plot(run_nums, tests_timings, color='c', marker='d', label='tests and examples')
+    ax1.plot(run_nums, total_timings, color='b', marker='o', label='total', linewidth=4)
+    ax2.plot(run_nums, vt_timings, color='m', marker='s', label='vt-lib', linewidth=4)
+    ax3.plot(run_nums, tests_timings, color='c', marker='d', label='tests and examples', linewidth=4)
 
     annotate(ax1, run_nums, total_timings)
     annotate(ax2, run_nums, vt_timings)
