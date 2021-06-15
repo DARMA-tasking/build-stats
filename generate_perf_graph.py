@@ -37,17 +37,20 @@ def prepare_data():
     file_name = f'{test_name}_times.csv'
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
+        total_df = total_df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
         current = time_df.head(num_nodes)
         current['run_num'] = [new_run_num for node in range(num_nodes)]
         current['date'] = [new_date for node in range(num_nodes)]
         current['commit'] = [commit_id for node in range(num_nodes)]
-        total_df.append(current).to_csv(file_name, index=False, float_format='%.3f')
+        current = total_df.append(current)
     else:
         current = time_df.head(num_nodes)
         current['run_num'] = [new_run_num for node in range(num_nodes)]
         current['date'] = [new_date for node in range(num_nodes)]
         current['commit'] = [commit_id for node in range(num_nodes)]
-        current.to_csv(file_name, index=False, float_format='%.3f')
+
+    current.to_csv(file_name, index=False, float_format='%.3f')
+    generate_historic_graph(test_name, num_nodes, current)
 
     return test_name, time_data, memory_data
 
@@ -106,6 +109,7 @@ def generate_memory_graph(test_name, memory_data):
     for node in range(num_nodes):
         ax1.plot(num_iter, memory_data[node]["mem"] / 1024 / 1024, label=f'node {node}', linewidth=4)
 
+    ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
     ax1.grid(True)
     ax1.set_ylabel("Size (MiB)")
@@ -114,8 +118,33 @@ def generate_memory_graph(test_name, memory_data):
 
     plt.savefig(f'{test_name}_memory.png')
 
+def generate_historic_graph(test_name, num_nodes, dataframe):
+    fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+
+    ax1.set_title(f'{test_name} times')
+    plt.xlabel("Run number")
+
+    run_nums = pd.unique(dataframe["run_num"]).tolist()
+    times = list()
+    for node in range(num_nodes):
+        times.append(dataframe["mean"].loc[dataframe["node"]==node].tolist())
+
+    print(run_nums)
+    print(times)
+    for node in range(len(times)):
+        ax1.plot(run_nums, times[node], linewidth=4)
+
+    ax1.xaxis.get_major_locator().set_params(integer=True)
+    ax1.legend()
+    ax1.grid(True)
+    ax1.set_ylabel("Time (ms)")
+
+    plt.tight_layout()
+
+    plt.savefig(f'{test_name}_past_runs.png')
+
 if __name__ == "__main__":
-    test_name, time_data, memory_data = prepare_data()
     set_graph_properties()
+    test_name, time_data, memory_data = prepare_data()
     generate_memory_graph(test_name, memory_data)
     generate_time_graph(test_name, time_data)
