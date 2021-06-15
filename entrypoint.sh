@@ -128,7 +128,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
         echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $name"
 
-        python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file
+        python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file -r "$GITHUB_RUN_NUMBER"
     done
 
     cd -
