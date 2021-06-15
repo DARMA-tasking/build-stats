@@ -33,7 +33,8 @@ def prepare_data():
     new_date = date.today().strftime("%d %B %Y")
     commit_id = os.getenv('GITHUB_SHA')
 
-    file_name = f'{time_df["name"].loc[1]}_times.csv'
+    test_name = time_df["name"].loc[1]
+    file_name = f'{test_name}_times.csv'
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
         current = time_df.head(num_nodes)
@@ -48,7 +49,7 @@ def prepare_data():
         current['commit'] = [commit_id for node in range(num_nodes)]
         current.to_csv(file_name, index=False, float_format='%.3f')
 
-    return time_data, memory_data
+    return test_name, time_data, memory_data
 
 def set_graph_properties():
     SMALL_SIZE = 15
@@ -57,13 +58,14 @@ def set_graph_properties():
 
     plt.rc('font', size=MEDIUM_SIZE, family='serif')
     plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
-    plt.rc('xtick', labelsize=MEDIUM_SIZE)
+    plt.rc('xtick', labelsize=SMALL_SIZE)
     plt.rc('ytick', labelsize=MEDIUM_SIZE)
-    plt.rc('legend', fontsize=MEDIUM_SIZE)
+    plt.rc('legend', fontsize=SMALL_SIZE)
     plt.rc('figure', titlesize=BIG_SIZE)
 
-def generate_time_graph(time_data):
+def generate_time_graph(test_name, time_data):
     fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    ax1.set_title(f'{test_name} time results')
 
     num_nodes = len(time_data)
 
@@ -83,38 +85,37 @@ def generate_time_graph(time_data):
     time_list = time_data[0]["name"].tolist()
     off = time_list[0].rfind(" ") + 1
 
-    ax1.set_xticklabels([i[:off] for i in time_list])
+    ax1.set_xticklabels([i[:off] for i in time_list], rotation=85)
     ax1.set_xlabel(time_list[0][off:])
     ax1.set_ylabel("Time (ms)")
-
-    plt.xticks(rotation=85)
+    ax1.legend()
 
     plt.tight_layout()
 
-    plt.savefig(f'{memory_data[0]["name"].any()}_time.png')
+    plt.savefig(f'{test_name}_time.png')
 
-def generate_memory_graph(memory_data):
+def generate_memory_graph(test_name, memory_data):
     fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
-    ax1.set_title(f'{memory_data[0]["name"].any()} memory usage')
+    ax1.set_title(f'{test_name} memory usage')
     plt.xlabel("Iteration")
 
     num_nodes = len(memory_data)
     num_iter = [i for i in range(len(memory_data[0]))]
 
     for node in range(num_nodes):
-        ax1.plot(num_iter, memory_data[node]["mem"] / 1024, label=f'node {node}', linewidth=4)
+        ax1.plot(num_iter, memory_data[node]["mem"] / 1024 / 1024, label=f'node {node}', linewidth=4)
 
     ax1.legend()
     ax1.grid(True)
-    ax1.set_ylabel("Size (KiB)")
+    ax1.set_ylabel("Size (MiB)")
 
     plt.tight_layout()
 
-    plt.savefig(f'{memory_data[0]["name"].any()}_memory.png')
+    plt.savefig(f'{test_name}_memory.png')
 
 if __name__ == "__main__":
-    time_data, memory_data = prepare_data()
+    test_name, time_data, memory_data = prepare_data()
     set_graph_properties()
-    generate_memory_graph(memory_data)
-    generate_time_graph(time_data)
+    generate_memory_graph(test_name, memory_data)
+    generate_time_graph(test_name, time_data)
