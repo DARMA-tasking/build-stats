@@ -232,6 +232,41 @@ def generate_last_build_table():
 
     return last_builds_table
 
+def generate_last_runs_table():
+    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
+    df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
+    last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
+
+    run_nums = last_builds['run_num'].tolist()
+    vt_timings = last_builds['vt'].tolist()
+    tests_timings = last_builds['tests'].tolist()
+    total_timings = [sum(x) for x in zip(vt_timings, tests_timings)]
+    dates = last_builds['date'].tolist()
+    commits = last_builds['commit'].tolist()
+
+    last_builds_table = "<details> <summary> <b> CLICK HERE TO SEE PAST BUILDS </b> </summary>"\
+        "<table style=\"width:100%\">"\
+        "<tr>"\
+        "<th>Run</th>"\
+        "<th>Date</th>"\
+        "<th>Total time</th>"\
+        "<th>vt-lib time</th>"\
+        "<th>Tests and Examples</th>"\
+        "<th>Commit SHA</th>"\
+        "</tr>"
+
+    for i in range(-1, -last_builds.shape[0], -1):
+        last_builds_table += f"<tr><td><b>{run_nums[i]}</b></td>"\
+            f"<td>{dates[i]}</td>"\
+            f"<td>{convert_time(total_timings[i])}</td>"\
+            f"<td>{convert_time(vt_timings[i])}</td>"\
+            f"<td>{convert_time(tests_timings[i])}</td>"\
+            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"\
+
+    last_builds_table += "</table></details>\n"
+
+    return last_builds_table
+
 def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
 
     exp_templates_inst_string = generate_name_times_avg_table(exp_temp_inst)
@@ -278,11 +313,51 @@ def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
         "*** \n"
         )
 
-if __name__ == "__main__":
-    templates, template_sets, headers, templates_total_times, template_sets_times, headers_times = prepare_data()
-    generate_graph(EXP_TEMPLATE_INST_DIR, templates_total_times)
-    generate_graph(EXP_TEMPLATE_SET_DIR, template_sets_times)
-    generate_graph(EXP_HEADERS_DIR, headers_times)
+def create_md_perf_page():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--tests_names', help='Perf tests names', nargs='+', default=[], required=True)
 
-    last_builds = generate_last_build_table()
-    create_md_page(last_builds, templates, template_sets, headers)
+    test_names = parser.parse_args().tests_names
+
+    PERF_TESTS_URL = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
+    content_with_all_tests = ""
+
+    for test_name in test_names:
+        content_with_all_tests += f""\
+        f"[![]({PERF_TESTS_URL}{test_name}_past_runs.png)]({PERF_TESTS_URL}{test_name}_past_runs.png)\n"\
+        f"[![]({PERF_TESTS_URL}{test_name}_time.png)]({PERF_TESTS_URL}{test_name}_time.png)\n"\
+        f"[![]({PERF_TESTS_URL}{test_name}_memory.png)]({PERF_TESTS_URL}{test_name}_memory.png)\n"
+
+    PAGE_NAME = "Perf-Tests"
+    with open(f"{PAGE_NAME}.md", "w") as f:
+        f.write(f""
+        f"# Build History\n"
+        f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
+        "Configuration:\n"
+        "- Compiler: **Clang-10**\n"
+        "- Linux: **Ubuntu 20.04**\n"
+        "- Build Type: **Release**\n"
+        "- Unity Build: **OFF**\n"
+        "- Production Mode: **OFF**\n"
+        f"{content_with_all_tests}"
+        "Following flamegraphs were generated using [Heaptrack](https://github.com/KDE/heaptrack) and [Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
+        "### jacobi2d_vt node: 0\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_0.svg)\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg)\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg)\n"
+        "### jacobi2d_vt node: 1\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_1.svg)\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg)\n"
+        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg)\n"
+        )
+
+
+if __name__ == "__main__":
+    # templates, template_sets, headers, templates_total_times, template_sets_times, headers_times = prepare_data()
+    # generate_graph(EXP_TEMPLATE_INST_DIR, templates_total_times)
+    # generate_graph(EXP_TEMPLATE_SET_DIR, template_sets_times)
+    # generate_graph(EXP_HEADERS_DIR, headers_times)
+
+    # last_builds = generate_last_build_table()
+    # create_md_page(last_builds, templates, template_sets, headers)
+    create_md_perf_page()

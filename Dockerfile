@@ -20,8 +20,8 @@ RUN chmod +x /generate_build_graph.py
 COPY generate_perf_graph.py /
 RUN chmod +x /generate_perf_graph.py
 
-COPY generate_wiki_page.py /
-RUN chmod +x /generate_wiki_page.py
+COPY generate_wiki_pages.py /
+RUN chmod +x /generate_wiki_pages.py
 
 COPY build_vt.sh /
 RUN chmod +x /build_vt.sh

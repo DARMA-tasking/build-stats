@@ -4,8 +4,8 @@ import os
 from datetime import date
 import pandas as pd
 
-GRAPH_WIDTH = float(os.getenv('INPUT_GRAPH_WIDTH'))
-GRAPH_HEIGHT = float(os.getenv('INPUT_GRAPH_HEIGHT'))
+GRAPH_WIDTH = 20
+GRAPH_HEIGHT = 10
 
 def prepare_data():
     """ Parse the input data, read CSV file and append it with the new results """
@@ -86,10 +86,9 @@ def generate_time_graph(test_name, time_data):
     ax1.set_xticks(num_iter)
 
     time_list = time_data[0]["name"].tolist()
-    off = time_list[0].rfind(" ") + 1
 
-    ax1.set_xticklabels([i[:off] for i in time_list], rotation=85)
-    ax1.set_xlabel(time_list[0][off:])
+    ax1.set_xticklabels([i[:i.rfind(" ") + 1] for i in time_list], rotation=85)
+    ax1.set_xlabel(time_list[0][time_list[0].rfind(" ") + 1:])
     ax1.set_ylabel("Time (ms)")
     ax1.legend()
 
@@ -121,7 +120,7 @@ def generate_memory_graph(test_name, memory_data):
 def generate_historic_graph(test_name, num_nodes, dataframe):
     fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
-    ax1.set_title(f'{test_name} times')
+    ax1.set_title(f'{test_name} times over past builds')
     plt.xlabel("Run number")
 
     run_nums = pd.unique(dataframe["run_num"]).tolist()
@@ -129,10 +128,15 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     for node in range(num_nodes):
         times.append(dataframe["mean"].loc[dataframe["node"]==node].tolist())
 
-    print(run_nums)
-    print(times)
+    barWidth = 1.0 / (2 * num_nodes)
+
+    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
+
+    for node in range(num_nodes - 1):
+        bar_positions.append([x + barWidth for x in bar_positions[node]])
+
     for node in range(len(times)):
-        ax1.plot(run_nums, times[node], linewidth=4)
+        ax1.bar(bar_positions[node], times[node], label=f'node {node}', width = barWidth)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()

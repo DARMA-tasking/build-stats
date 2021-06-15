@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# set -euo pipefail
-# set -x
+set -euo pipefail
 
 cd "$GITHUB_WORKSPACE"
 
@@ -114,19 +113,17 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # Generate graph
     # python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
-    perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv")
+    perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv" | sed  -e "s/_mem.csv$//")
 
     cd perf_tests
 
     for file in $perf_test_files
     do
-        name=$(echo $file | sed  -e "s/_mem.csv$//")
-
         # Each test generates both time/mem files
-        time_file="${name}_time.csv"
-        memory_file="${name}_mem.csv"
+        time_file="${file}_time.csv"
+        memory_file="${file}_mem.csv"
 
-        echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $name"
+        echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $file"
 
         python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file -r "$GITHUB_RUN_NUMBER"
     done
@@ -135,7 +132,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
     eval cp "$GITHUB_WORKSPACE/flame_heaptrack*" "./perf_tests/"
-    # python3 /generate_wiki_page.py
+    python3 /generate_wiki_pages.py -t $perf_test_files
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
