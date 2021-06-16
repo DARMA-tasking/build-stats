@@ -7,12 +7,15 @@ import pandas as pd
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
 
+
 def prepare_data():
     """ Parse the input data, read CSV file and append it with the new results """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-time', '--time_test', help='Time-based results', required=True)
-    parser.add_argument('-mem', '--memory_test', help='Memory usage', required=True)
+    parser.add_argument('-time', '--time_test',
+                        help='Time-based results', required=True)
+    parser.add_argument('-mem', '--memory_test',
+                        help='Memory usage', required=True)
     parser.add_argument('-r', '--run_num', help='Run number', required=True)
 
     time_test_file = parser.parse_args().time_test
@@ -26,8 +29,8 @@ def prepare_data():
     memory_data = list()
     time_data = list()
     for node in range(num_nodes):
-        memory_data.append(memory_df.loc[memory_df["node"]==node])
-        time_data.append(time_df.tail(-num_nodes).loc[time_df["node"]==node])
+        memory_data.append(memory_df.loc[memory_df["node"] == node])
+        time_data.append(time_df.tail(-num_nodes).loc[time_df["node"] == node])
 
     new_run_num = int(parser.parse_args().run_num)
     new_date = date.today().strftime("%d %B %Y")
@@ -54,6 +57,7 @@ def prepare_data():
 
     return test_name, time_data, memory_data
 
+
 def set_graph_properties():
     SMALL_SIZE = 15
     MEDIUM_SIZE = 25
@@ -66,8 +70,10 @@ def set_graph_properties():
     plt.rc('legend', fontsize=SMALL_SIZE)
     plt.rc('figure', titlesize=BIG_SIZE)
 
+
 def generate_time_graph(test_name, time_data):
-    fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    fig, ax1 = plt.subplots(
+        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
     ax1.set_title(f'{test_name} time results')
 
     num_nodes = len(time_data)
@@ -75,13 +81,15 @@ def generate_time_graph(test_name, time_data):
     num_iter = [i for i in range(len(time_data[0]))]
     barWidth = 1.0 / (2 * num_nodes)
 
-    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
+    bar_positions = [
+        [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
 
     for node in range(num_nodes - 1):
         bar_positions.append([x + barWidth for x in bar_positions[node]])
 
     for node in range(num_nodes):
-        ax1.bar(bar_positions[node], time_data[node]["mean"], label=f'node {node}', width = barWidth)
+        ax1.bar(bar_positions[node], time_data[node]
+                ["mean"], label=f'node {node}', width=barWidth)
 
     ax1.set_xticks(num_iter)
 
@@ -96,8 +104,10 @@ def generate_time_graph(test_name, time_data):
 
     plt.savefig(f'{test_name}_time.png')
 
+
 def generate_memory_graph(test_name, memory_data):
-    fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    fig, ax1 = plt.subplots(
+        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     ax1.set_title(f'{test_name} memory usage')
     plt.xlabel("Iteration")
@@ -106,7 +116,8 @@ def generate_memory_graph(test_name, memory_data):
     num_iter = [i for i in range(len(memory_data[0]))]
 
     for node in range(num_nodes):
-        ax1.plot(num_iter, memory_data[node]["mem"] / 1024 / 1024, label=f'node {node}', linewidth=4)
+        ax1.plot(num_iter, memory_data[node]["mem"] /
+                 1024 / 1024, label=f'node {node}', linewidth=4)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
@@ -117,8 +128,10 @@ def generate_memory_graph(test_name, memory_data):
 
     plt.savefig(f'{test_name}_memory.png')
 
+
 def generate_historic_graph(test_name, num_nodes, dataframe):
-    fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    fig, ax1 = plt.subplots(
+        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     ax1.set_title(f'{test_name} run history')
     plt.xlabel("Run number")
@@ -126,17 +139,19 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     run_nums = pd.unique(dataframe["run_num"]).tolist()
     times = list()
     for node in range(num_nodes):
-        times.append(dataframe["mean"].loc[dataframe["node"]==node].tolist())
+        times.append(dataframe["mean"].loc[dataframe["node"] == node].tolist())
 
     barWidth = 1.0 / (2 * num_nodes)
 
-    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
+    bar_positions = [
+        [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
 
     for node in range(num_nodes - 1):
         bar_positions.append([x + barWidth for x in bar_positions[node]])
 
     for node in range(len(times)):
-        ax1.bar(bar_positions[node], times[node], label=f'node {node}', width = barWidth)
+        ax1.bar(bar_positions[node], times[node],
+                label=f'node {node}', width=barWidth)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
@@ -146,6 +161,7 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     plt.tight_layout()
 
     plt.savefig(f'{test_name}_past_runs.png')
+
 
 if __name__ == "__main__":
     set_graph_properties()

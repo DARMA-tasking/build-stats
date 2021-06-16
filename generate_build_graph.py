@@ -7,6 +7,7 @@ import pandas as pd
 
 OUTPUT_DIR = os.getenv('INPUT_BUILD_STATS_OUTPUT')
 
+
 def extract_build_time(in_time):
     """
     Convert the duration from linux's time command format to seconds
@@ -24,12 +25,15 @@ def extract_build_time(in_time):
 
     return total_time_seconds
 
+
 def prepare_data():
     """ Parse the input data, read CSV file and append it with the new results """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-vt', '--vt_time', help='VT lib build time', required=True)
-    parser.add_argument('-te', '--tests_examples_time', help='Tests&Examples build time', required=True)
+    parser.add_argument('-vt', '--vt_time',
+                        help='VT lib build time', required=True)
+    parser.add_argument('-te', '--tests_examples_time',
+                        help='Tests&Examples build time', required=True)
     parser.add_argument('-r', '--run_num', help='Run number', required=True)
 
     vt_build_time = parser.parse_args().vt_time
@@ -44,13 +48,15 @@ def prepare_data():
     built_int_ref = os.getenv('GITHUB_REF')
 
     vt_total_time_seconds = extract_build_time(vt_build_time)
-    tests_total_time_seconds = extract_build_time(tests_and_examples_build_time)
+    tests_total_time_seconds = extract_build_time(
+        tests_and_examples_build_time)
 
     PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
     df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
     last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
     updated = last_builds.append(pd.DataFrame(
-        [[vt_total_time_seconds, tests_total_time_seconds, new_run_num, new_date, commit_id]],
+        [[vt_total_time_seconds, tests_total_time_seconds,
+            new_run_num, new_date, commit_id]],
         columns=['vt', 'tests', 'run_num', 'date', 'commit']))
 
     # Data to be plotted
@@ -71,12 +77,14 @@ def prepare_data():
 
     return vt_timings, tests_timings, run_nums, dates
 
+
 def set_common_axis_data(iterable_axis):
     for ax in iterable_axis:
         ax.xaxis.get_major_locator().set_params(integer=True)
         ax.legend()
         ax.grid(True)
         ax.set_ylabel(os.getenv('INPUT_Y_LABEL'))
+
 
 def annotate(ax, x_list, y_list):
     """ Annotate build time graph with percentage change between current build time and the previous one. """
@@ -86,7 +94,8 @@ def annotate(ax, x_list, y_list):
     previous_value = y_list[-2]
     current_value = y_list[-1]
 
-    percentage_diff = round(((current_value - previous_value) / previous_value) * 100.0)
+    percentage_diff = round(
+        ((current_value - previous_value) / previous_value) * 100.0)
     color = "red" if percentage_diff > 0 else "green"
     x_pos = x_list[-1] + (x_list[-1] / 100.0)
 
@@ -97,6 +106,7 @@ def annotate(ax, x_list, y_list):
     print(f"Previous value = {previous_value}, Current value = {current_value}, Percentage diff = {percentage_diff}, \
         xy={x_pos}, {y_pos}, Color = {color}")
     ax.annotate(text, xy=(x_pos, y_pos), color=color, weight='bold')
+
 
 def generate_graph(vt, tests, run_nums, dates):
     SMALL_SIZE = 15
@@ -119,14 +129,18 @@ def generate_graph(vt, tests, run_nums, dates):
     total_timings = [sum(x) for x in zip(vt_timings, tests_timings)]
 
     # plot
-    fig, (ax1, ax2, ax3) = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=3, ncols=1)
+    fig, (ax1, ax2, ax3) = plt.subplots(
+        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=3, ncols=1)
 
     ax1.set_title(f"{os.getenv('INPUT_TITLE')} ({dates[0]} - {dates[-1]})")
     plt.xlabel(os.getenv('INPUT_X_LABEL'))
 
-    ax1.plot(run_nums, total_timings, color='b', marker='o', label='total', linewidth=4)
-    ax2.plot(run_nums, vt_timings, color='m', marker='s', label='vt-lib', linewidth=4)
-    ax3.plot(run_nums, tests_timings, color='c', marker='d', label='tests and examples', linewidth=4)
+    ax1.plot(run_nums, total_timings, color='b',
+             marker='o', label='total', linewidth=4)
+    ax2.plot(run_nums, vt_timings, color='m',
+             marker='s', label='vt-lib', linewidth=4)
+    ax3.plot(run_nums, tests_timings, color='c', marker='d',
+             label='tests and examples', linewidth=4)
 
     annotate(ax1, run_nums, total_timings)
     annotate(ax2, run_nums, vt_timings)
@@ -145,7 +159,8 @@ def generate_badge(vt, tests):
     BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
     title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
 
-    print(f"Last build time = {BUILD_TIME}seconds average build = {average_time}seconds color = {BADGE_COLOR}")
+    print(
+        f"Last build time = {BUILD_TIME}seconds average build = {average_time}seconds color = {BADGE_COLOR}")
     url = f"https://img.shields.io/badge/{title}-{BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
 
     BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
@@ -155,7 +170,9 @@ def generate_badge(vt, tests):
     print(f"Downloading badge with URL = {url}")
     r = requests.get(url)
 
-    open(f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}", 'wb').write(r.content)
+    open(f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}",
+         'wb').write(r.content)
+
 
 if __name__ == "__main__":
     [vt, tests, run_nums, dates] = prepare_data()
