@@ -120,7 +120,7 @@ def generate_memory_graph(test_name, memory_data):
 def generate_historic_graph(test_name, num_nodes, dataframe):
     fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
-    ax1.set_title(f'{test_name} times over past builds')
+    ax1.set_title(f'{test_name} run history')
     plt.xlabel("Run number")
 
     run_nums = pd.unique(dataframe["run_num"]).tolist()

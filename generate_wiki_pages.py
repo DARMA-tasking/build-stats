@@ -267,6 +267,19 @@ def generate_last_runs_table():
 
     return last_builds_table
 
+def create_image_hyperlink(image_link):
+    return f"[![]({image_link})]({image_link})"
+
+def get_runner_info():
+    return f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM]\
+        (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"\
+        "Configuration:\n"\
+        "- Compiler: **Clang-10**\n"\
+        "- Linux: **Ubuntu 20.04**\n"\
+        "- Build Type: **Release**\n"\
+        "- Unity Build: **OFF**\n"\
+        "- Production Mode: **OFF**\n"
+
 def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
 
     exp_templates_inst_string = generate_name_times_avg_table(exp_temp_inst)
@@ -285,13 +298,7 @@ def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
         f"- [ClangBuildAnalyzer full report]({CLANG_BUILD_REPORT})\n"
         "***\n"
         f"# Build History\n"
-        f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
-        "Configuration:\n"
-        "- Compiler: **Clang-10**\n"
-        "- Linux: **Ubuntu 20.04**\n"
-        "- Build Type: **Release**\n"
-        "- Unity Build: **OFF**\n"
-        "- Production Mode: **OFF**\n"
+        f"{get_runner_info()}"
         "<br><br>"
         f"[![](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})\n"
         "## Past Builds\n"
@@ -300,15 +307,15 @@ def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
         "# Build Stats\n"
         f"Following graphs were generated using data created by [ClangBuildAnalyzer](https://github.com/aras-p/ClangBuildAnalyzer) \n"
         "## Templates that took longest to instantiate \n"
-        f"[![](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_INST_DIR})](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_INST_DIR})\n"
+        f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_INST_DIR}')}\n"
         f"{exp_templates_inst_string}"
         "*** \n"
         "## Template sets that took longest to instantiate \n"
-        f"[![](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_SET_DIR})](https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_SET_DIR})\n"
+        f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_SET_DIR}')}\n"
         f"{exp_templates_sets_string}"
         "*** \n"
         "## Most expensive headers \n"
-        f"[![](https://github.com/{REPO_NAME}/wiki/{EXP_HEADERS_DIR})](https://github.com/{REPO_NAME}/wiki/{EXP_HEADERS_DIR})\n"
+        f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_HEADERS_DIR}')}\n"
         f"{exp_headers_string}"
         "*** \n"
         )
@@ -320,35 +327,33 @@ def create_md_perf_page():
     test_names = parser.parse_args().tests_names
 
     PERF_TESTS_URL = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
-    content_with_all_tests = ""
+    content_with_all_tests = "# Test Results\n"
 
     for test_name in test_names:
         content_with_all_tests += f""\
-        f"[![]({PERF_TESTS_URL}{test_name}_past_runs.png)]({PERF_TESTS_URL}{test_name}_past_runs.png)\n"\
-        f"[![]({PERF_TESTS_URL}{test_name}_time.png)]({PERF_TESTS_URL}{test_name}_time.png)\n"\
-        f"[![]({PERF_TESTS_URL}{test_name}_memory.png)]({PERF_TESTS_URL}{test_name}_memory.png)\n"
+        f"## {test_name}\n"\
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_past_runs.png')}\n"\
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_time.png')}\n"\
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_memory.png')}\n"\
+        "*** \n"
 
     PAGE_NAME = "Perf-Tests"
     with open(f"{PAGE_NAME}.md", "w") as f:
         f.write(f""
-        f"# Build History\n"
-        f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
-        "Configuration:\n"
-        "- Compiler: **Clang-10**\n"
-        "- Linux: **Ubuntu 20.04**\n"
-        "- Build Type: **Release**\n"
-        "- Unity Build: **OFF**\n"
-        "- Production Mode: **OFF**\n"
+        f"# Performance Tests\n"
+        f"{get_runner_info()}"
         f"{content_with_all_tests}"
+        "<br><br>"
+        "## Heaptrack result\n"
         "Following flamegraphs were generated using [Heaptrack](https://github.com/KDE/heaptrack) and [Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
         "### jacobi2d_vt node: 0\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_0.svg)\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg)\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg)\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg')}\n"
         "### jacobi2d_vt node: 1\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_1.svg)\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg)\n"
-        f"[![]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg)]({PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg)\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg')}\n"
         )
 
 
