@@ -344,12 +344,15 @@ def create_md_perf_page():
     content_with_all_tests = "# Test Results\n"
 
     for test_name in test_names:
-        content_with_all_tests += f""\
-            f"## {test_name}\n"\
-            f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_past_runs.png')}\n"\
-            f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_time.png')}\n"\
-            f"{create_image_hyperlink(f'{PERF_TESTS_URL}{test_name}_memory.png')}\n"\
-            "*** \n"
+        past_runs_name = f'{test_name}_past_runs.png'
+        content_with_all_tests = f"## {test_name}\n"\
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}{past_runs_name}')}\n"
+
+        for file in os.listdir(f"{OUTPUT_DIR}/../perf_tests/"):
+            if file.startswith(test_name) and (file != past_runs_name):
+                    content_with_all_tests += f"{create_image_hyperlink(f'{PERF_TESTS_URL}{file}')}\n"
+
+        content_with_all_tests += "*** \n"
 
     PAGE_NAME = "Perf-Tests"
     with open(f"{PAGE_NAME}.md", "w") as f:

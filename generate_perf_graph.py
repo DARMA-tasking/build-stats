@@ -3,6 +3,7 @@ import argparse
 import os
 from datetime import date
 import pandas as pd
+from collections import defaultdict
 
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
@@ -72,38 +73,49 @@ def set_graph_properties():
 
 
 def generate_time_graph(test_name, time_data):
-    fig, ax1 = plt.subplots(
-        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
-    ax1.set_title(f'{test_name} time results')
-
     num_nodes = len(time_data)
 
-    num_iter = [i for i in range(len(time_data[0]))]
-    barWidth = 1.0 / (2 * num_nodes)
-
-    bar_positions = [
-        [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
-
-    for node in range(num_nodes - 1):
-        bar_positions.append([x + barWidth for x in bar_positions[node]])
-
-    for node in range(num_nodes):
-        ax1.bar(bar_positions[node], time_data[node]
-                ["mean"], label=f'node {node}', width=barWidth)
-
-    ax1.set_xticks(num_iter)
-
     time_list = time_data[0]["name"].tolist()
+    off = time_list[0].rfind(" ") + 1
+    name_one = time_list[0][off:]
 
-    ax1.set_xticklabels([i[:i.rfind(" ") + 1] for i in time_list], rotation=85)
-    ax1.set_xlabel(time_list[0][time_list[0].rfind(" ") + 1:])
-    ax1.set_ylabel("Time (ms)")
-    ax1.legend()
+    all_names = time_data[0]["name"].tolist()
+    test_names = set([name[name.find(" ")+1:] for name in all_names])
 
-    plt.tight_layout()
+    per_test_dict = defaultdict(dict)
+    for test_name in test_names:
+        for node in range(num_nodes):
+            per_test_dict.setdefault(test_name, []).append(
+                time_data[node][time_data[node]["name"].str.endswith(test_name) == True])
 
-    plt.savefig(f'{test_name}_time.png')
+    for k,v in per_test_dict.items():
+        fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+        ax1.set_title(f'{k} time results')
 
+        num_iter = [i for i in range(len(v[0]))]
+        barWidth = 1.0 / (2 * num_nodes)
+
+        bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
+
+        for node in range(num_nodes - 1):
+            bar_positions.append([x + barWidth for x in bar_positions[node]])
+
+        for node in range(num_nodes):
+            ax1.bar(bar_positions[node], v[node]["mean"], label=f'node {node}', width = barWidth)
+
+        ax1.set_xticks(num_iter)
+
+        if len(v[0]) > 1:
+            ax1.set_xticklabels([i[:off] for i in time_list])
+        ax1.set_xlabel(k)
+        ax1.set_ylabel("Time (ms)")
+        ax1.legend()
+
+        plt.xticks(rotation=85)
+
+        plt.tight_layout()
+
+        plt.savefig(f'{test_name}_{k}_time.png')
 
 def generate_memory_graph(test_name, memory_data):
     fig, ax1 = plt.subplots(
