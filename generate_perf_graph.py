@@ -161,7 +161,7 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     for node in range(num_nodes - 1):
         bar_positions.append([x + barWidth for x in bar_positions[node]])
 
-    for node in range(len(times)):
+    for node in range(num_nodes):
         ax1.bar(bar_positions[node], times[node],
                 label=f'node {node}', width=barWidth)
 
