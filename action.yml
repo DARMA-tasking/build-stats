@@ -1,6 +1,6 @@
 name: "Generate build stats"
 description: |
- "GitHub action that generates a Markdown file with build statistics"
+ "GitHub action that generates a Markdown file with build statistics and performance test results"
 
 inputs:
   github_personal_token:

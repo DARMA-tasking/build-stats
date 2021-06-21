@@ -374,11 +374,11 @@ def create_md_perf_page():
 
 
 if __name__ == "__main__":
-    # templates, template_sets, headers, templates_total_times, template_sets_times, headers_times = prepare_data()
-    # generate_graph(EXP_TEMPLATE_INST_DIR, templates_total_times)
-    # generate_graph(EXP_TEMPLATE_SET_DIR, template_sets_times)
-    # generate_graph(EXP_HEADERS_DIR, headers_times)
+    templates, template_sets, headers, templates_total_times, template_sets_times, headers_times = prepare_data()
+    generate_graph(EXP_TEMPLATE_INST_DIR, templates_total_times)
+    generate_graph(EXP_TEMPLATE_SET_DIR, template_sets_times)
+    generate_graph(EXP_HEADERS_DIR, headers_times)
 
-    # last_builds = generate_last_build_table()
-    # create_md_page(last_builds, templates, template_sets, headers)
+    last_builds = generate_last_build_table()
+    create_md_page(last_builds, templates, template_sets, headers)
     create_md_perf_page()

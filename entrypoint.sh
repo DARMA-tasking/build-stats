@@ -27,38 +27,37 @@ VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
 git clone https://github.com/brendangregg/FlameGraph.git
 
-# # ClangBuildAnalyzer
-# git clone https://github.com/aras-p/ClangBuildAnalyzer
-# cd ClangBuildAnalyzer
-# mkdir build && cd build
+# ClangBuildAnalyzer
+git clone https://github.com/aras-p/ClangBuildAnalyzer
+cd ClangBuildAnalyzer
+mkdir build && cd build
 
-# cmake .. && make
-# chmod +x ClangBuildAnalyzer
-# ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
-# cd "$GITHUB_WORKSPACE"
+cmake .. && make
+chmod +x ClangBuildAnalyzer
+ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
+cd "$GITHUB_WORKSPACE"
 
 ##################
 ## BUILD VT LIB ##
 ##################
 
+export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
+
 # Build VT lib
-# /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
-# vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
+/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" vt
+vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
 # Build tests and examples
-# /build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
-# tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
+/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "-ftime-trace" all
+tests_and_examples_build=$(grep -oP 'real\s+\K\d+m\d+\.\d+s' "$VT_BUILD_FOLDER/build_time.txt")
 
-# cp /ClangBuildAnalyzer.ini .
-# $ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
-# $ClangBuildTool --analyze vt-build > build_result.txt
+cp /ClangBuildAnalyzer.ini .
+$ClangBuildTool --all "$VT_BUILD_FOLDER" vt-build
+$ClangBuildTool --analyze vt-build > build_result.txt
 
 #######################
 ## PERFORMANCE TESTS ##
 #######################
-
-export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
-/build_vt.sh "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/build" "" all
 
 cd "$GITHUB_WORKSPACE/build/vt"
 
@@ -111,7 +110,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    # python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
+    python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
     perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv" | sed  -e "s/_mem.csv$//")
 
@@ -129,9 +128,10 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     done
 
     cd -
-    # cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 
+    cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
     eval cp "$GITHUB_WORKSPACE/flame_heaptrack*" "./perf_tests/"
+
     python3 /generate_wiki_pages.py -t $perf_test_files
 
     git add .
