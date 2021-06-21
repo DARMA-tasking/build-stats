@@ -33,6 +33,8 @@ def prepare_data():
         memory_data.append(memory_df.loc[memory_df["node"] == node])
         time_data.append(time_df.tail(-num_nodes).loc[time_df["node"] == node])
 
+    print(f"Memory: {memory_data}")
+
     new_run_num = int(parser.parse_args().run_num)
     new_date = date.today().strftime("%d %B %Y")
     commit_id = os.getenv('GITHUB_SHA')

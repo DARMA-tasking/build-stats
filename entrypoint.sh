@@ -26,21 +26,20 @@ VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 ########################
 
 git clone https://github.com/brendangregg/FlameGraph.git
-
-# ClangBuildAnalyzer
 git clone https://github.com/aras-p/ClangBuildAnalyzer
+
 cd ClangBuildAnalyzer
 mkdir build && cd build
 
 cmake .. && make
 chmod +x ClangBuildAnalyzer
 ClangBuildTool="$GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer"
-cd "$GITHUB_WORKSPACE"
 
 ##################
 ## BUILD VT LIB ##
 ##################
 
+cd "$GITHUB_WORKSPACE"
 export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
 
 # Build VT lib
@@ -60,9 +59,7 @@ $ClangBuildTool --analyze vt-build > build_result.txt
 #######################
 
 cd "$GITHUB_WORKSPACE/build/vt"
-
-ctest --output-on-failure -L perf_test
-
+ctest --output-on-failure --verbose -L perf_test
 cd -
 
 ##########################
@@ -70,8 +67,8 @@ cd -
 ##########################
 
 # Running 'mpirun -n x heaptrack' will generate x number of separate files, one for each node/rank
-mpirun -n 2 heaptrack $GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt 10 10 200
-jacobi_output_list=$(ls | grep "heaptrack.jacobi2d_vt.*.gz")
+mpirun -n 2 heaptrack "$GITHUB_WORKSPACE/build/vt/examples/collection/jacobi2d_vt" 10 10 200
+jacobi_output_list=$(ls -- *heaptrack.jacobi2d_vt.*.gz)
 
 node_num=0
 for file in ${jacobi_output_list}
@@ -110,9 +107,9 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     git pull "$WIKI_URL"
 
     # Generate graph
-    python3 /generate_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
+    python3 /generate_build_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
-    perf_test_files=$(ls $VT_BUILD_FOLDER/tests/ | grep "_mem.csv" | sed  -e "s/_mem.csv$//")
+    perf_test_files=$(find "$VT_BUILD_FOLDER/tests/" -name "*_mem.csv" | sed 's!.*/!!' | sed -e 's/_mem.csv$//')
 
     cd perf_tests
 
@@ -124,7 +121,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
         echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $file"
 
-        python3 /generate_perf_graph.py -time $VT_BUILD_FOLDER/tests/$time_file -mem $VT_BUILD_FOLDER/tests/$memory_file -r "$GITHUB_RUN_NUMBER"
+        python3 /generate_perf_graph.py -time "$VT_BUILD_FOLDER/tests/$time_file" -mem "$VT_BUILD_FOLDER/tests/$memory_file" -r "$GITHUB_RUN_NUMBER"
     done
 
     cd -
@@ -132,7 +129,7 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     cp "$GITHUB_WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
     eval cp "$GITHUB_WORKSPACE/flame_heaptrack*" "./perf_tests/"
 
-    python3 /generate_wiki_pages.py -t $perf_test_files
+    python3 /generate_wiki_pages.py -t "$perf_test_files"
 
     git add .
     git commit -m "$INPUT_COMMIT_MESSAGE"
