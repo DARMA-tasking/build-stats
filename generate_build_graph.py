@@ -27,7 +27,7 @@ def extract_build_time(in_time):
 
 
 def prepare_data():
-    """ Parse the input data, read CSV file and append it with the new results """
+    """ Parse the input data, read CSV file and append the new results """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-vt', '--vt_time',
@@ -42,16 +42,14 @@ def prepare_data():
     new_date = date.today().strftime("%d %B %Y")
 
     commit_id = os.getenv('GITHUB_SHA')
-    run_number = os.getenv('GITHUB_RUN_NUMBER')
-    built_int_head = os.getenv('GITHUB_HEAD_REF')
-    built_int_base = os.getenv('GITHUB_BASE_REF')
-    built_int_ref = os.getenv('GITHUB_REF')
 
     vt_total_time_seconds = extract_build_time(vt_build_time)
     tests_total_time_seconds = extract_build_time(
         tests_and_examples_build_time)
 
-    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
+    file_name = os.getenv('INPUT_BUILD_TIMES_FILENAME')
+    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{file_name}"
+
     df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
     last_builds = df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
     updated = last_builds.append(pd.DataFrame(
@@ -71,8 +69,6 @@ def prepare_data():
     print(f"run nums = {run_nums}")
     print(f"commits = {commits}")
 
-    last_n_runs = updated.shape[0]
-
     updated.to_csv(PREVIOUS_BUILDS_FILENAME, index=False)
 
     return vt_timings, tests_timings, run_nums, dates
@@ -87,7 +83,8 @@ def set_common_axis_data(iterable_axis):
 
 
 def annotate(ax, x_list, y_list):
-    """ Annotate build time graph with percentage change between current build time and the previous one. """
+    """ Annotate build time graph with percentage change between
+    current build time and the previous one. """
 
     avg_y = sum(y_list) / len(y_list)
 
@@ -100,16 +97,19 @@ def annotate(ax, x_list, y_list):
     x_pos = x_list[-1] + (x_list[-1] / 100.0)
 
     y_offset = avg_y / 100.0
-    y_pos = current_value - y_offset if current_value > avg_y else current_value + y_offset
+    if current_value > avg_y:
+        y_pos = current_value - y_offset
+    else:
+        y_pos = current_value + y_offset
 
     text = f'+{percentage_diff}%' if color == "red" else f'{percentage_diff}%'
-    print(f"Previous value = {previous_value}, Current value = {current_value}, Percentage diff = {percentage_diff}, \
-        xy={x_pos}, {y_pos}, Color = {color}")
+    print(f"Previous value = {previous_value}, Current value = "
+          f"{current_value}, Percentage diff = {percentage_diff},"
+          f"xy={x_pos}, {y_pos}, Color = {color}")
     ax.annotate(text, xy=(x_pos, y_pos), color=color, weight='bold')
 
 
 def generate_graph(vt, tests, run_nums, dates):
-    SMALL_SIZE = 15
     MEDIUM_SIZE = 25
     BIGGER_SIZE = 35
 
@@ -160,8 +160,10 @@ def generate_badge(vt, tests):
     title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
 
     print(
-        f"Last build time = {BUILD_TIME}seconds average build = {average_time}seconds color = {BADGE_COLOR}")
-    url = f"https://img.shields.io/badge/{title}-{BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
+        f"Last build time = {BUILD_TIME}seconds average build ="
+        f"{average_time}seconds color = {BADGE_COLOR}")
+    url = f"https://img.shields.io/badge/{title}-\
+        {BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
 
     BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
     if(len(BADGE_LOGO) > 0):
