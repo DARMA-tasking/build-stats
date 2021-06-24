@@ -10,7 +10,7 @@ GRAPH_HEIGHT = 10
 
 
 def prepare_data():
-    """ Parse the input data, read CSV file and append it with the new results """
+    """ Parse the input data, read CSV file and append the new results """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-time', '--time_test',
@@ -79,31 +79,33 @@ def generate_time_graph(test_name, time_data):
 
     time_list = time_data[0]["name"].tolist()
     off = time_list[0].rfind(" ") + 1
-    name_one = time_list[0][off:]
 
     all_names = time_data[0]["name"].tolist()
-    test_names = set([name[name.find(" ")+1:] for name in all_names])
+    test_names = set([name[name.find(" ") + 1:] for name in all_names])
 
     per_test_dict = defaultdict(dict)
     for test_name in test_names:
         for node in range(num_nodes):
             per_test_dict.setdefault(test_name, []).append(
-                time_data[node][time_data[node]["name"].str.endswith(test_name) == True])
+                time_data[node][time_data[node]["name"].str.endswith(test_name)])
 
-    for k,v in per_test_dict.items():
-        fig, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    for k, v in per_test_dict.items():
+        fig, ax1 = plt.subplots(
+            figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
         ax1.set_title(f'{k} time results')
 
         num_iter = [i for i in range(len(v[0]))]
         barWidth = 1.0 / (2 * num_nodes)
 
-        bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
+        bar_positions = [
+            [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
 
         for node in range(num_nodes - 1):
             bar_positions.append([x + barWidth for x in bar_positions[node]])
 
         for node in range(num_nodes):
-            ax1.bar(bar_positions[node], v[node]["mean"], label=f'node {node}', width = barWidth)
+            ax1.bar(bar_positions[node], v[node]["mean"],
+                    label=f'node {node}', width=barWidth)
 
         ax1.set_xticks(num_iter)
 
@@ -119,6 +121,7 @@ def generate_time_graph(test_name, time_data):
 
         plt.savefig(f'{test_name}_{k}_time.png')
 
+
 def generate_memory_graph(test_name, memory_data):
     fig, ax1 = plt.subplots(
         figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
@@ -130,8 +133,8 @@ def generate_memory_graph(test_name, memory_data):
     num_iter = [i for i in range(len(memory_data[0]))]
 
     for node in range(num_nodes):
-        ax1.plot(num_iter, memory_data[node]["mem"] /
-                 1024 / 1024, label=f'node {node}', linewidth=4)
+        ax1.plot(num_iter, memory_data[node]["mem"] / 1024 / 1024,
+                 label=f'node {node}', linewidth=4)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()

@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
 import argparse
 import os
-import requests
-from datetime import date
 import pandas as pd
-import numpy as np
 
 OUTPUT_DIR = os.getenv('INPUT_BUILD_STATS_OUTPUT')
 CLANG_BUILD_REPORT = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_RESULT_FILENAME')}"
@@ -27,7 +24,9 @@ def get_name_times_avg(lines):
 
     Output:
     total_times = [26549, 25000]
-    name_times_avg = {0: (some<template>, 306, 86), 1: (some<other_template>, 500, 50)}
+    name_times_avg = {
+        0: (some<template>, 306, 86),
+        1: (some<other_template>, 500, 50)}
     """
     AVG_MS_THRESHOLD = 20
 
@@ -37,7 +36,8 @@ def get_name_times_avg(lines):
     index = 0
 
     for line in lines:
-        # Stop if we parsed all lines for given action or we've reached the limit
+        # Stop if we parsed all lines for given action
+        # or we've reached the limit
         if not line.endswith("ms)") or index >= NUM_TOP_RESULTS:
             break
 
@@ -113,7 +113,7 @@ def generate_name_times_avg_table(templates_text):
         "|---|:---:|---|---|\n"
     for idx, (name, times, avg) in templates_text.items():
         # Escape '|' to not break markdown table
-        name = name.replace("|", "\|")
+        name = name.replace("|", r"\|")
         templates_string += f"| **{idx}** | `{name}` | **{times}** | **{avg}** |\n"
 
     return templates_string
@@ -147,12 +147,12 @@ def prepare_data():
             if line.startswith("*** Expensive headers:"):
                 headers_times, headers = get_headers(lines[idx + 1:])
 
-    return templates, template_sets, headers, templates_total_times, template_sets_times, headers_times
+    return templates, template_sets, headers, templates_total_times,
+    template_sets_times, headers_times
 
 
 def generate_graph(name, templates_total_times):
 
-    SMALL_SIZE = 15
     MEDIUM_SIZE = 25
     BIGGER_SIZE = 35
 
@@ -166,7 +166,7 @@ def generate_graph(name, templates_total_times):
     barWidth = 0.50
     fig, ax = plt.subplots(figsize=(19, 14))
 
-    templates_total_times = [t//1000 for t in templates_total_times]
+    templates_total_times = [t // 1000 for t in templates_total_times]
     TTT = templates_total_times
 
     # Add x, y gridlines
@@ -189,7 +189,7 @@ def generate_graph(name, templates_total_times):
     ax.barh(yAxies, TTT, height=barWidth, label='total time (sec)')
 
     for idx, i in enumerate(ax.patches):
-        plt.text(i.get_width()+0.2, i.get_y()+0.5,
+        plt.text(i.get_width() + 0.2, i.get_y() + 0.5,
                  str(round((i.get_width()), 2)), fontsize=BIGGER_SIZE, color='black')
 
     yTicks = range(len(TTT))
@@ -202,7 +202,7 @@ def generate_graph(name, templates_total_times):
 
 
 def convert_time(time_in_sec):
-    return f"{time_in_sec//60}min {time_in_sec%60}sec"
+    return f"{time_in_sec // 60}min {time_in_sec % 60}sec"
 
 
 def generate_last_build_table():
@@ -234,7 +234,7 @@ def generate_last_build_table():
             f"<td>{convert_time(total_timings[i])}</td>"\
             f"<td>{convert_time(vt_timings[i])}</td>"\
             f"<td>{convert_time(tests_timings[i])}</td>"\
-            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"\
+            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"
 
     last_builds_table += "</table></details>\n"
 
@@ -270,7 +270,7 @@ def generate_last_runs_table():
             f"<td>{convert_time(total_timings[i])}</td>"\
             f"<td>{convert_time(vt_timings[i])}</td>"\
             f"<td>{convert_time(tests_timings[i])}</td>"\
-            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"\
+            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"
 
     last_builds_table += "</table></details>\n"
 
@@ -282,55 +282,63 @@ def create_image_hyperlink(image_link):
 
 
 def get_runner_info():
-    return f"**NOTE. The following builds were run on GitHub Action runners that use [2-core CPU and 7 GB RAM]"\
-        "(https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"\
-        "Configuration:\n"\
-        "- Compiler: **Clang-10**\n"\
-        "- Linux: **Ubuntu 20.04**\n"\
-        "- Build Type: **Release**\n"\
-        "- Unity Build: **OFF**\n"\
-        "- Production Mode: **OFF**\n"
+    return ("**NOTE. The following builds were run on GitHub Action runners"
+            "that use [2-core CPU and 7 GB RAM]"
+            "(https://docs.github.com/en/actions/using-github-hosted-runners/"
+            "about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
+            "Configuration:\n"
+            "- Compiler: **Clang-10**\n"
+            "- Linux: **Ubuntu 20.04**\n"
+            "- Build Type: **Release**\n"
+            "- Unity Build: **OFF**\n"
+            "- Production Mode: **OFF**\n")
 
 
-def create_md_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
+def create_md_build_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers):
 
     exp_templates_inst_string = generate_name_times_avg_table(exp_temp_inst)
     exp_templates_sets_string = generate_name_times_avg_table(exp_temp_sets)
     exp_headers_string = generate_name_times_avg_table(exp_headers)
 
     PAGE_NAME = "Build-Stats"
+    WIKI_URL = f"https://github.com/{REPO_NAME}/wiki"
+    WIKI_PAGE = f"{WIKI_URL}/{PAGE_NAME}"
+
+    file_content = (
+        f"- [Build History]({WIKI_PAGE}#build-history)\n"
+        f"- [Past Builds]({WIKI_PAGE}#past-builds)\n"
+        f"- [Templates that took longest to instantiate]"
+        f"({WIKI_PAGE}#templates-that-took-longest-to-instantiate)\n"
+        f"- [Template sets that took longest to instantiate]"
+        f"({WIKI_PAGE}#template-sets-that-took-longest-to-instantiate)\n"
+        f"- [Most expensive headers]({WIKI_PAGE}#Most-expensive-headers)\n"
+        f"- [ClangBuildAnalyzer full report]({CLANG_BUILD_REPORT})\n"
+        "***\n"
+        f"# Build History\n"
+        f"{get_runner_info()}"
+        "<br><br>\n"
+        f"{create_image_hyperlink(f'{WIKI_URL}/{GRAPH_FILENAME}')}\n"
+        "## Past Builds\n"
+        f"{last_builds} \n"
+        "*** \n"
+        "# Build Stats\n"
+        "Following graphs were generated using data created by "
+        f"[ClangBuildAnalyzer](https://github.com/aras-p/ClangBuildAnalyzer)\n"
+        "## Templates that took longest to instantiate \n"
+        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_TEMPLATE_INST_DIR}')}\n"
+        f"{exp_templates_inst_string}"
+        "*** \n"
+        "## Template sets that took longest to instantiate \n"
+        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_TEMPLATE_SET_DIR}')}\n"
+        f"{exp_templates_sets_string}"
+        "*** \n"
+        "## Most expensive headers \n"
+        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_HEADERS_DIR}')}\n"
+        f"{exp_headers_string}"
+        "*** \n")
+
     with open(f"{PAGE_NAME}.md", "w") as f:
-        WIKI_PAGE = f"https://github.com/{REPO_NAME}/wiki/{PAGE_NAME}"
-        f.write(f""
-                f"- [Build History]({WIKI_PAGE}#build-history)\n"
-                f"- [Past Builds]({WIKI_PAGE}#past-builds)\n"
-                f"- [Templates that took longest to instantiate]({WIKI_PAGE}#templates-that-took-longest-to-instantiate)\n"
-                f"- [Template sets that took longest to instantiate]({WIKI_PAGE}#template-sets-that-took-longest-to-instantiate)\n"
-                f"- [Most expensive headers]({WIKI_PAGE}#Most-expensive-headers)\n"
-                f"- [ClangBuildAnalyzer full report]({CLANG_BUILD_REPORT})\n"
-                "***\n"
-                f"# Build History\n"
-                f"{get_runner_info()}"
-                "<br><br>\n"
-                f"[![](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})](https://github.com/{REPO_NAME}/wiki/{GRAPH_FILENAME})\n"
-                "## Past Builds\n"
-                f"{last_builds} \n"
-                "*** \n"
-                "# Build Stats\n"
-                f"Following graphs were generated using data created by [ClangBuildAnalyzer](https://github.com/aras-p/ClangBuildAnalyzer) \n"
-                "## Templates that took longest to instantiate \n"
-                f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_INST_DIR}')}\n"
-                f"{exp_templates_inst_string}"
-                "*** \n"
-                "## Template sets that took longest to instantiate \n"
-                f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_TEMPLATE_SET_DIR}')}\n"
-                f"{exp_templates_sets_string}"
-                "*** \n"
-                "## Most expensive headers \n"
-                f"{create_image_hyperlink(f'https://github.com/{REPO_NAME}/wiki/{EXP_HEADERS_DIR}')}\n"
-                f"{exp_headers_string}"
-                "*** \n"
-                )
+        f.write(file_content)
 
 
 def create_md_perf_page():
@@ -346,39 +354,47 @@ def create_md_perf_page():
     for test_name in test_names:
         past_runs_name = f'{test_name}_past_runs.png'
         content_with_all_tests = f"## {test_name}\n"\
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}{past_runs_name}')}\n"
+            f"{create_image_hyperlink(f'{PERF_TESTS_URL}{past_runs_name}')}\n"
 
         for file in os.listdir(f"{OUTPUT_DIR}/../perf_tests/"):
             if file.startswith(test_name) and (file != past_runs_name):
-                    content_with_all_tests += f"{create_image_hyperlink(f'{PERF_TESTS_URL}{file}')}\n"
+                link = create_image_hyperlink(f'{PERF_TESTS_URL}{file}')
+                content_with_all_tests += f"{link}\n"
 
         content_with_all_tests += "*** \n"
 
+    file_content = (
+        f"# Performance Tests\n"
+        f"{get_runner_info()}"
+        f"{content_with_all_tests}\n"
+        "# Heaptrack result\n"
+        "Following flamegraphs were generated using"
+        "[Heaptrack](https://github.com/KDE/heaptrack) and "
+        "[Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
+        "## jacobi2d_vt node: 0\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg')}\n"
+        "## jacobi2d_vt node: 1\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
+        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg')}\n"
+        )
+
     PAGE_NAME = "Perf-Tests"
     with open(f"{PAGE_NAME}.md", "w") as f:
-        f.write(f""
-                f"# Performance Tests\n"
-                f"{get_runner_info()}"
-                f"{content_with_all_tests}\n"
-                "# Heaptrack result\n"
-                "Following flamegraphs were generated using [Heaptrack](https://github.com/KDE/heaptrack) and [Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
-                "## jacobi2d_vt node: 0\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg')}\n"
-                "## jacobi2d_vt node: 1\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
-                f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg')}\n"
-                )
+        f.write(file_content)
 
 
 if __name__ == "__main__":
-    templates, template_sets, headers, templates_total_times, template_sets_times, headers_times = prepare_data()
+    templates, template_sets, headers, \
+        templates_total_times, template_sets_times, headers_times \
+        = prepare_data()
+
     generate_graph(EXP_TEMPLATE_INST_DIR, templates_total_times)
     generate_graph(EXP_TEMPLATE_SET_DIR, template_sets_times)
     generate_graph(EXP_HEADERS_DIR, headers_times)
 
     last_builds = generate_last_build_table()
-    create_md_page(last_builds, templates, template_sets, headers)
+    create_md_build_page(last_builds, templates, template_sets, headers)
     create_md_perf_page()
