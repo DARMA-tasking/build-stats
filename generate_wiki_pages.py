@@ -147,8 +147,7 @@ def prepare_data():
             if line.startswith("*** Expensive headers:"):
                 headers_times, headers = get_headers(lines[idx + 1:])
 
-    return templates, template_sets, headers, templates_total_times,
-    template_sets_times, headers_times
+    return templates, template_sets, headers, templates_total_times, template_sets_times, headers_times
 
 
 def generate_graph(name, templates_total_times):
@@ -164,7 +163,7 @@ def generate_graph(name, templates_total_times):
     plt.rc('figure', titlesize=BIGGER_SIZE)
 
     barWidth = 0.50
-    fig, ax = plt.subplots(figsize=(19, 14))
+    _, ax = plt.subplots(figsize=(19, 14))
 
     templates_total_times = [t // 1000 for t in templates_total_times]
     TTT = templates_total_times
@@ -188,7 +187,7 @@ def generate_graph(name, templates_total_times):
 
     ax.barh(yAxies, TTT, height=barWidth, label='total time (sec)')
 
-    for idx, i in enumerate(ax.patches):
+    for i in ax.patches:
         plt.text(i.get_width() + 0.2, i.get_y() + 0.5,
                  str(round((i.get_width()), 2)), fontsize=BIGGER_SIZE, color='black')
 

@@ -90,7 +90,7 @@ def generate_time_graph(test_name, time_data):
                 time_data[node][time_data[node]["name"].str.endswith(test_name)])
 
     for k, v in per_test_dict.items():
-        fig, ax1 = plt.subplots(
+        _, ax1 = plt.subplots(
             figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
         ax1.set_title(f'{k} time results')
 
@@ -123,7 +123,7 @@ def generate_time_graph(test_name, time_data):
 
 
 def generate_memory_graph(test_name, memory_data):
-    fig, ax1 = plt.subplots(
+    _, ax1 = plt.subplots(
         figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     ax1.set_title(f'{test_name} memory usage')
@@ -147,7 +147,7 @@ def generate_memory_graph(test_name, memory_data):
 
 
 def generate_historic_graph(test_name, num_nodes, dataframe):
-    fig, ax1 = plt.subplots(
+    _, ax1 = plt.subplots(
         figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
     ax1.set_title(f'{test_name} run history')

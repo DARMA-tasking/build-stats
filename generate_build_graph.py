@@ -129,7 +129,7 @@ def generate_graph(vt, tests, run_nums, dates):
     total_timings = [sum(x) for x in zip(vt_timings, tests_timings)]
 
     # plot
-    fig, (ax1, ax2, ax3) = plt.subplots(
+    _, (ax1, ax2, ax3) = plt.subplots(
         figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=3, ncols=1)
 
     ax1.set_title(f"{os.getenv('INPUT_TITLE')} ({dates[0]} - {dates[-1]})")
