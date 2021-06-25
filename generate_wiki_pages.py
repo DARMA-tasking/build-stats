@@ -191,7 +191,9 @@ def generate_graph(name, templates_total_times):
 
     y_axies = range(len(templates_total_times))
 
-    ax_1.barh(y_axies, templates_total_times, height=bar_width, label="total time (sec)")
+    ax_1.barh(
+        y_axies, templates_total_times, height=bar_width, label="total time (sec)"
+    )
 
     for i in ax_1.patches:
         plt.text(
@@ -203,7 +205,7 @@ def generate_graph(name, templates_total_times):
         )
 
     y_ticks = range(len(templates_total_times))
-    plt.yticks([tick for tick in y_ticks], y_ticks)
+    plt.yticks(list(y_ticks), y_ticks)
 
     plt.legend()
     plt.tight_layout()
@@ -216,9 +218,9 @@ def convert_time(time_in_sec):
 
 
 def generate_last_build_table():
-    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
-    df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
-    last_builds = df.tail(int(os.getenv("INPUT_NUM_LAST_BUILD")) - 1)
+    previous_builds_filename = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
+    data_frame = pd.read_csv(previous_builds_filename)
+    last_builds = data_frame.tail(int(os.getenv("INPUT_NUM_LAST_BUILD")) - 1)
 
     run_nums = last_builds["run_num"].tolist()
     vt_timings = last_builds["vt"].tolist()
@@ -256,9 +258,9 @@ def generate_last_build_table():
 
 
 def generate_last_runs_table():
-    PREVIOUS_BUILDS_FILENAME = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
-    df = pd.read_csv(PREVIOUS_BUILDS_FILENAME)
-    last_builds = df.tail(int(os.getenv("INPUT_NUM_LAST_BUILD")) - 1)
+    previous_builds_filename = f"{OUTPUT_DIR}/{os.getenv('INPUT_BUILD_TIMES_FILENAME')}"
+    data_frame = pd.read_csv(previous_builds_filename)
+    last_builds = data_frame.tail(int(os.getenv("INPUT_NUM_LAST_BUILD")) - 1)
 
     run_nums = last_builds["run_num"].tolist()
     vt_timings = last_builds["vt"].tolist()
@@ -320,24 +322,24 @@ def create_md_build_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers)
     exp_templates_sets_string = generate_name_times_avg_table(exp_temp_sets)
     exp_headers_string = generate_name_times_avg_table(exp_headers)
 
-    PAGE_NAME = "Build-Stats"
-    WIKI_URL = f"https://github.com/{REPO_NAME}/wiki"
-    WIKI_PAGE = f"{WIKI_URL}/{PAGE_NAME}"
+    page_name = "Build-Stats"
+    wiki_url = f"https://github.com/{REPO_NAME}/wiki"
+    wiki_page = f"{wiki_url}/{page_name}"
 
     file_content = (
-        f"- [Build History]({WIKI_PAGE}#build-history)\n"
-        f"- [Past Builds]({WIKI_PAGE}#past-builds)\n"
+        f"- [Build History]({wiki_page}#build-history)\n"
+        f"- [Past Builds]({wiki_page}#past-builds)\n"
         f"- [Templates that took longest to instantiate]"
-        f"({WIKI_PAGE}#templates-that-took-longest-to-instantiate)\n"
+        f"({wiki_page}#templates-that-took-longest-to-instantiate)\n"
         f"- [Template sets that took longest to instantiate]"
-        f"({WIKI_PAGE}#template-sets-that-took-longest-to-instantiate)\n"
-        f"- [Most expensive headers]({WIKI_PAGE}#Most-expensive-headers)\n"
+        f"({wiki_page}#template-sets-that-took-longest-to-instantiate)\n"
+        f"- [Most expensive headers]({wiki_page}#Most-expensive-headers)\n"
         f"- [ClangBuildAnalyzer full report]({CLANG_BUILD_REPORT})\n"
         "***\n"
         f"# Build History\n"
         f"{get_runner_info()}"
         "<br><br>\n"
-        f"{create_image_hyperlink(f'{WIKI_URL}/{GRAPH_FILENAME}')}\n"
+        f"{create_image_hyperlink(f'{wiki_url}/{GRAPH_FILENAME}')}\n"
         "## Past Builds\n"
         f"{last_builds} \n"
         "*** \n"
@@ -345,21 +347,21 @@ def create_md_build_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers)
         "Following graphs were generated using data created by "
         f"[ClangBuildAnalyzer](https://github.com/aras-p/ClangBuildAnalyzer)\n"
         "## Templates that took longest to instantiate \n"
-        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_TEMPLATE_INST_DIR}')}\n"
+        f"{create_image_hyperlink(f'{wiki_url}/{EXP_TEMPLATE_INST_DIR}')}\n"
         f"{exp_templates_inst_string}"
         "*** \n"
         "## Template sets that took longest to instantiate \n"
-        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_TEMPLATE_SET_DIR}')}\n"
+        f"{create_image_hyperlink(f'{wiki_url}/{EXP_TEMPLATE_SET_DIR}')}\n"
         f"{exp_templates_sets_string}"
         "*** \n"
         "## Most expensive headers \n"
-        f"{create_image_hyperlink(f'{WIKI_URL}/{EXP_HEADERS_DIR}')}\n"
+        f"{create_image_hyperlink(f'{wiki_url}/{EXP_HEADERS_DIR}')}\n"
         f"{exp_headers_string}"
         "*** \n"
     )
 
-    with open(f"{PAGE_NAME}.md", "w") as f:
-        f.write(file_content)
+    with open(f"{page_name}.md", "w") as file:
+        file.write(file_content)
 
 
 def create_md_perf_page():
@@ -375,19 +377,19 @@ def create_md_perf_page():
 
     test_names = parser.parse_args().tests_names
 
-    PERF_TESTS_URL = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
+    perf_test_url = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
     content_with_all_tests = "# Test Results\n"
 
     for test_name in test_names:
         past_runs_name = f"{test_name}_past_runs.png"
         content_with_all_tests = (
             f"## {test_name}\n"
-            f"{create_image_hyperlink(f'{PERF_TESTS_URL}{past_runs_name}')}\n"
+            f"{create_image_hyperlink(f'{perf_test_url}{past_runs_name}')}\n"
         )
 
         for file in os.listdir(f"{OUTPUT_DIR}/../perf_tests/"):
             if file.startswith(test_name) and (file != past_runs_name):
-                link = create_image_hyperlink(f"{PERF_TESTS_URL}{file}")
+                link = create_image_hyperlink(f"{perf_test_url}{file}")
                 content_with_all_tests += f"{link}\n"
 
         content_with_all_tests += "*** \n"
@@ -401,18 +403,18 @@ def create_md_perf_page():
         "[Heaptrack](https://github.com/KDE/heaptrack) and "
         "[Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
         "## jacobi2d_vt node: 0\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_0.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_leaked_0.svg')}\n"
         "## jacobi2d_vt node: 1\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
-        f"{create_image_hyperlink(f'{PERF_TESTS_URL}flame_heaptrack_jacobi_leaked_1.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_leaked_1.svg')}\n"
     )
 
-    PAGE_NAME = "Perf-Tests"
-    with open(f"{PAGE_NAME}.md", "w") as f:
-        f.write(file_content)
+    page_name = "Perf-Tests"
+    with open(f"{page_name}.md", "w") as file:
+        file.write(file_content)
 
 
 if __name__ == "__main__":

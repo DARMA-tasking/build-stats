@@ -121,23 +121,23 @@ def annotate(axis, x_list, y_list):
     axis.annotate(text, xy=(x_pos, y_pos), color=color, weight="bold")
 
 
-def generate_graph(vt, tests, run_nums, dates):
-    MEDIUM_SIZE = 25
-    BIGGER_SIZE = 35
+def generate_graph(vt_times, tests_times, run_nums, dates):
+    medium_size = 25
+    big_size = 35
 
-    plt.rc("font", size=MEDIUM_SIZE, family="serif")
-    plt.rc("axes", titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
-    plt.rc("xtick", labelsize=MEDIUM_SIZE)
-    plt.rc("ytick", labelsize=MEDIUM_SIZE)
-    plt.rc("legend", fontsize=MEDIUM_SIZE)
-    plt.rc("figure", titlesize=BIGGER_SIZE)
+    plt.rc("font", size=medium_size, family="serif")
+    plt.rc("axes", titlesize=medium_size, labelsize=medium_size)
+    plt.rc("xtick", labelsize=medium_size)
+    plt.rc("ytick", labelsize=medium_size)
+    plt.rc("legend", fontsize=medium_size)
+    plt.rc("figure", titlesize=big_size)
 
     graph_width = float(os.getenv("INPUT_GRAPH_WIDTH"))
     graph_height = float(os.getenv("INPUT_GRAPH_HEIGHT"))
 
     # Times in CSV are stored in seconds, transform them to minutes for graph
-    vt_timings = [x / 60 for x in vt]
-    tests_timings = [x / 60 for x in tests]
+    vt_timings = [x / 60 for x in vt_times]
+    tests_timings = [x / 60 for x in tests_times]
     total_timings = [sum(x) for x in zip(vt_timings, tests_timings)]
 
     # plot
@@ -148,7 +148,9 @@ def generate_graph(vt, tests, run_nums, dates):
     ax_1.set_title(f"{os.getenv('INPUT_TITLE')} ({dates[0]} - {dates[-1]})")
     plt.xlabel(os.getenv("INPUT_X_LABEL"))
 
-    ax_1.plot(run_nums, total_timings, color="b", marker="o", label="total", linewidth=4)
+    ax_1.plot(
+        run_nums, total_timings, color="b", marker="o", label="total", linewidth=4
+    )
     ax_2.plot(run_nums, vt_timings, color="m", marker="s", label="vt-lib", linewidth=4)
     ax_3.plot(
         run_nums,
@@ -186,12 +188,14 @@ def generate_badge(vt_times, tests_times):
         url += f"?logo={badge_logo}"
 
     print(f"Downloading badge with URL = {url}")
-    r = requests.get(url)
+    request = requests.get(url)
 
-    open(f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}", "wb").write(r.content)
+    open(f"{OUTPUT_DIR}/{os.getenv('INPUT_BADGE_FILENAME')}", "wb").write(
+        request.content
+    )
 
 
 if __name__ == "__main__":
-    [vt_times, tests_times, ret_runs, ret_dates] = prepare_data()
-    generate_graph(vt_times, tests_times, ret_runs, ret_dates)
-    generate_badge(vt_times, tests_times)
+    [vt_times_in, tests_times_in, ret_runs_in, ret_dates_in] = prepare_data()
+    generate_graph(vt_times_in, tests_times_in, ret_runs_in, ret_dates_in)
+    generate_badge(vt_times_in, tests_times_in)

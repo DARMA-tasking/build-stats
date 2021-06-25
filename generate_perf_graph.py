@@ -8,7 +8,7 @@ import pandas as pd
 
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
-NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", 30)) - 1
+NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", "30")) - 1
 
 
 def prepare_data():
@@ -74,16 +74,16 @@ def prepare_data():
 
 
 def set_graph_properties():
-    SMALL_SIZE = 15
-    MEDIUM_SIZE = 25
-    BIG_SIZE = 35
+    small_size = 15
+    medium_size = 25
+    big_size = 35
 
-    plt.rc("font", size=MEDIUM_SIZE, family="serif")
-    plt.rc("axes", titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
-    plt.rc("xtick", labelsize=SMALL_SIZE)
-    plt.rc("ytick", labelsize=MEDIUM_SIZE)
-    plt.rc("legend", fontsize=SMALL_SIZE)
-    plt.rc("figure", titlesize=BIG_SIZE)
+    plt.rc("font", size=medium_size, family="serif")
+    plt.rc("axes", titlesize=medium_size, labelsize=medium_size)
+    plt.rc("xtick", labelsize=small_size)
+    plt.rc("ytick", labelsize=medium_size)
+    plt.rc("legend", fontsize=small_size)
+    plt.rc("figure", titlesize=big_size)
 
 
 def generate_time_graph(main_test_name, time_data):
@@ -93,7 +93,7 @@ def generate_time_graph(main_test_name, time_data):
     off = time_list[0].rfind(" ") + 1
 
     all_names = time_data[0]["name"].tolist()
-    test_names = set([name[name.find(" ") + 1 :] for name in all_names])
+    test_names = {name[name.find(" ") + 1 :] for name in all_names}
 
     per_test_dict = defaultdict(dict)
     for test_name in test_names:
@@ -102,41 +102,41 @@ def generate_time_graph(main_test_name, time_data):
                 time_data[node][time_data[node]["name"].str.endswith(test_name)]
             )
 
-    for k, v in per_test_dict.items():
-        _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
-        ax1.set_title(f"{k} time results")
+    for key, value in per_test_dict.items():
+        _, ax_1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+        ax_1.set_title(f"{key} time results")
 
-        num_iter = [i for i in range(len(v[0]))]
-        barWidth = 1.0 / (2 * num_nodes)
+        num_iter = list(range(len(value[0])))
+        bar_width = 1.0 / (2 * num_nodes)
 
         bar_positions = [
-            [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]
+            [i - bar_width * (num_nodes / 2) + bar_width / 2 for i in num_iter]
         ]
 
         for node in range(num_nodes - 1):
-            bar_positions.append([x + barWidth for x in bar_positions[node]])
+            bar_positions.append([x + bar_width for x in bar_positions[node]])
 
         for node in range(num_nodes):
-            ax1.bar(
+            ax_1.bar(
                 bar_positions[node],
-                v[node]["mean"],
+                value[node]["mean"],
                 label=f"node {node}",
-                width=barWidth,
+                width=bar_width,
             )
 
-        ax1.set_xticks(num_iter)
+        ax_1.set_xticks(num_iter)
 
-        if len(v[0]) > 1:
-            ax1.set_xticklabels([i[:off] for i in time_list])
-        ax1.set_xlabel(k)
-        ax1.set_ylabel("Time (ms)")
-        ax1.legend()
+        if len(value[0]) > 1:
+            ax_1.set_xticklabels([i[:off] for i in time_list])
+        ax_1.set_xlabel(key)
+        ax_1.set_ylabel("Time (ms)")
+        ax_1.legend()
 
         plt.xticks(rotation=85)
 
         plt.tight_layout()
 
-        plt.savefig(f"{main_test_name}_{k}_time.png")
+        plt.savefig(f"{main_test_name}_{key}_time.png")
 
 
 def generate_memory_graph(test_name, memory_data):
@@ -146,7 +146,7 @@ def generate_memory_graph(test_name, memory_data):
     plt.xlabel("Iteration")
 
     num_nodes = len(memory_data)
-    num_iter = [i for i in range(len(memory_data[0]))]
+    num_iter = list(range(len(memory_data[0])))
 
     for node in range(num_nodes):
         ax1.plot(
@@ -177,15 +177,17 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     for node in range(num_nodes):
         times.append(dataframe["mean"].loc[dataframe["node"] == node].tolist())
 
-    barWidth = 1.0 / (2 * num_nodes)
+    bar_width = 1.0 / (2 * num_nodes)
 
-    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
+    bar_positions = [
+        [i - bar_width * (num_nodes / 2) + bar_width / 2 for i in run_nums]
+    ]
 
     for node in range(num_nodes - 1):
-        bar_positions.append([x + barWidth for x in bar_positions[node]])
+        bar_positions.append([x + bar_width for x in bar_positions[node]])
 
     for node in range(num_nodes):
-        ax1.bar(bar_positions[node], times[node], label=f"node {node}", width=barWidth)
+        ax1.bar(bar_positions[node], times[node], label=f"node {node}", width=bar_width)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
@@ -199,6 +201,6 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 
 if __name__ == "__main__":
     set_graph_properties()
-    test_name, time_data, memory_data = prepare_data()
-    generate_memory_graph(test_name, memory_data)
-    generate_time_graph(test_name, time_data)
+    test_name_in, time_data_in, memory_data_in = prepare_data()
+    generate_memory_graph(test_name_in, memory_data_in)
+    generate_time_graph(test_name_in, time_data_in)
