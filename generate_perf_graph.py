@@ -1,26 +1,30 @@
-import matplotlib.pyplot as plt
-import argparse
 import os
-from datetime import date
-import pandas as pd
 from collections import defaultdict
+import argparse
+from datetime import date
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
-NUM_LAST_BUILDS = int(os.getenv('INPUT_NUM_LAST_BUILD', 30)) - 1
+NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", 30)) - 1
+
 
 def prepare_data():
-    """ Parse the input data, read CSV file and append the new results """
+    """Parse the input data, read CSV file and append the new results"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-time', '--time_test',
-                        help='Time-based results', required=True)
-    parser.add_argument('-mem', '--memory_test',
-                        help='Memory usage', required=True)
-    parser.add_argument('-r', '--run_num', help='Run number', required=False,
-                        type=int, default=0)
-    parser.add_argument('-wiki', '--wiki_dir', help='vt.wiki directory', required=True,
-                        type=str)
+    parser.add_argument(
+        "-time", "--time_test", help="Time-based results", required=True
+    )
+    parser.add_argument("-mem", "--memory_test", help="Memory usage", required=True)
+    parser.add_argument(
+        "-r", "--run_num", help="Run number", required=False, type=int, default=0
+    )
+    parser.add_argument(
+        "-wiki", "--wiki_dir", help="vt.wiki directory", required=True, type=str
+    )
 
     time_test_file = parser.parse_args().time_test
     memory_test_file = parser.parse_args().memory_test
@@ -41,7 +45,7 @@ def prepare_data():
 
     new_run_num = parser.parse_args().run_num
     new_date = date.today().strftime("%d %B %Y")
-    commit_id = os.getenv('GITHUB_SHA', "")
+    commit_id = os.getenv("GITHUB_SHA", "")
 
     test_name = time_df["name"].loc[1]
     file_name = f"{path_to_wiki}/perf_tests/{test_name}_times.csv"
@@ -53,17 +57,17 @@ def prepare_data():
         if new_run_num == 0:
             new_run_num = total_df["run_num"].iloc[-1] + 1
 
-        current['run_num'] = [new_run_num for node in range(num_nodes)]
-        current['date'] = [new_date for node in range(num_nodes)]
-        current['commit'] = [commit_id for node in range(num_nodes)]
+        current["run_num"] = [new_run_num for node in range(num_nodes)]
+        current["date"] = [new_date for node in range(num_nodes)]
+        current["commit"] = [commit_id for node in range(num_nodes)]
         current = total_df.append(current)
     else:
         current = time_df.head(num_nodes)
-        current['run_num'] = [new_run_num for node in range(num_nodes)]
-        current['date'] = [new_date for node in range(num_nodes)]
-        current['commit'] = [commit_id for node in range(num_nodes)]
+        current["run_num"] = [new_run_num for node in range(num_nodes)]
+        current["date"] = [new_date for node in range(num_nodes)]
+        current["commit"] = [commit_id for node in range(num_nodes)]
 
-    current.to_csv(file_name, index=False, float_format='%.3f')
+    current.to_csv(file_name, index=False, float_format="%.3f")
     generate_historic_graph(test_name, num_nodes, current)
 
     return test_name, time_data, memory_data
@@ -74,12 +78,12 @@ def set_graph_properties():
     MEDIUM_SIZE = 25
     BIG_SIZE = 35
 
-    plt.rc('font', size=MEDIUM_SIZE, family='serif')
-    plt.rc('axes', titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
-    plt.rc('xtick', labelsize=SMALL_SIZE)
-    plt.rc('ytick', labelsize=MEDIUM_SIZE)
-    plt.rc('legend', fontsize=SMALL_SIZE)
-    plt.rc('figure', titlesize=BIG_SIZE)
+    plt.rc("font", size=MEDIUM_SIZE, family="serif")
+    plt.rc("axes", titlesize=MEDIUM_SIZE, labelsize=MEDIUM_SIZE)
+    plt.rc("xtick", labelsize=SMALL_SIZE)
+    plt.rc("ytick", labelsize=MEDIUM_SIZE)
+    plt.rc("legend", fontsize=SMALL_SIZE)
+    plt.rc("figure", titlesize=BIG_SIZE)
 
 
 def generate_time_graph(main_test_name, time_data):
@@ -89,31 +93,36 @@ def generate_time_graph(main_test_name, time_data):
     off = time_list[0].rfind(" ") + 1
 
     all_names = time_data[0]["name"].tolist()
-    test_names = set([name[name.find(" ") + 1:] for name in all_names])
+    test_names = set([name[name.find(" ") + 1 :] for name in all_names])
 
     per_test_dict = defaultdict(dict)
     for test_name in test_names:
         for node in range(num_nodes):
             per_test_dict.setdefault(test_name, []).append(
-                time_data[node][time_data[node]["name"].str.endswith(test_name)])
+                time_data[node][time_data[node]["name"].str.endswith(test_name)]
+            )
 
     for k, v in per_test_dict.items():
-        _, ax1 = plt.subplots(
-            figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
-        ax1.set_title(f'{k} time results')
+        _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+        ax1.set_title(f"{k} time results")
 
         num_iter = [i for i in range(len(v[0]))]
         barWidth = 1.0 / (2 * num_nodes)
 
         bar_positions = [
-            [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]]
+            [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in num_iter]
+        ]
 
         for node in range(num_nodes - 1):
             bar_positions.append([x + barWidth for x in bar_positions[node]])
 
         for node in range(num_nodes):
-            ax1.bar(bar_positions[node], v[node]["mean"],
-                    label=f'node {node}', width=barWidth)
+            ax1.bar(
+                bar_positions[node],
+                v[node]["mean"],
+                label=f"node {node}",
+                width=barWidth,
+            )
 
         ax1.set_xticks(num_iter)
 
@@ -127,22 +136,25 @@ def generate_time_graph(main_test_name, time_data):
 
         plt.tight_layout()
 
-        plt.savefig(f'{main_test_name}_{k}_time.png')
+        plt.savefig(f"{main_test_name}_{k}_time.png")
 
 
 def generate_memory_graph(test_name, memory_data):
-    _, ax1 = plt.subplots(
-        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
-    ax1.set_title(f'{test_name} memory usage')
+    ax1.set_title(f"{test_name} memory usage")
     plt.xlabel("Iteration")
 
     num_nodes = len(memory_data)
     num_iter = [i for i in range(len(memory_data[0]))]
 
     for node in range(num_nodes):
-        ax1.plot(num_iter, memory_data[node]["mem"] / 1024 / 1024,
-                 label=f'node {node}', linewidth=4)
+        ax1.plot(
+            num_iter,
+            memory_data[node]["mem"] / 1024 / 1024,
+            label=f"node {node}",
+            linewidth=4,
+        )
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
@@ -151,14 +163,13 @@ def generate_memory_graph(test_name, memory_data):
 
     plt.tight_layout()
 
-    plt.savefig(f'{test_name}_memory.png')
+    plt.savefig(f"{test_name}_memory.png")
 
 
 def generate_historic_graph(test_name, num_nodes, dataframe):
-    _, ax1 = plt.subplots(
-        figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
 
-    ax1.set_title(f'{test_name} run history')
+    ax1.set_title(f"{test_name} run history")
     plt.xlabel("Run number")
 
     run_nums = pd.unique(dataframe["run_num"]).tolist()
@@ -168,15 +179,13 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 
     barWidth = 1.0 / (2 * num_nodes)
 
-    bar_positions = [
-        [i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
+    bar_positions = [[i - barWidth * (num_nodes / 2) + barWidth / 2 for i in run_nums]]
 
     for node in range(num_nodes - 1):
         bar_positions.append([x + barWidth for x in bar_positions[node]])
 
     for node in range(num_nodes):
-        ax1.bar(bar_positions[node], times[node],
-                label=f'node {node}', width=barWidth)
+        ax1.bar(bar_positions[node], times[node], label=f"node {node}", width=barWidth)
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
@@ -185,7 +194,7 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 
     plt.tight_layout()
 
-    plt.savefig(f'{test_name}_past_runs.png')
+    plt.savefig(f"{test_name}_past_runs.png")
 
 
 if __name__ == "__main__":
