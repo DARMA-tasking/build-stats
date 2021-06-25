@@ -1,13 +1,13 @@
-name: PR checks (unsigned commits)
+name: Linter
 
 on:
   pull_request
 
 jobs:
   check:
-    name: Check if there are any unsigned commits
+    name: Run Linter
     runs-on: ubuntu-latest
-     steps:
+    steps:
       - uses: actions/checkout@v2
       - name: Python Linter
         uses: sunnysid3up/python-linter@master

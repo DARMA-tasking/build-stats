@@ -7,7 +7,7 @@ from collections import defaultdict
 
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
-
+NUM_LAST_BUILDS = int(os.getenv('INPUT_NUM_LAST_BUILD', 30)) - 1
 
 def prepare_data():
     """ Parse the input data, read CSV file and append the new results """
@@ -17,10 +17,14 @@ def prepare_data():
                         help='Time-based results', required=True)
     parser.add_argument('-mem', '--memory_test',
                         help='Memory usage', required=True)
-    parser.add_argument('-r', '--run_num', help='Run number', required=True)
+    parser.add_argument('-r', '--run_num', help='Run number', required=False,
+                        type=int, default=0)
+    parser.add_argument('-wiki', '--wiki_dir', help='vt.wiki directory', required=True,
+                        type=str)
 
     time_test_file = parser.parse_args().time_test
     memory_test_file = parser.parse_args().memory_test
+    path_to_wiki = parser.parse_args().wiki_dir
 
     time_df = pd.read_csv(time_test_file)
     memory_df = pd.read_csv(memory_test_file)
@@ -35,16 +39,20 @@ def prepare_data():
 
     print(f"Memory: {memory_data}")
 
-    new_run_num = int(parser.parse_args().run_num)
+    new_run_num = parser.parse_args().run_num
     new_date = date.today().strftime("%d %B %Y")
-    commit_id = os.getenv('GITHUB_SHA')
+    commit_id = os.getenv('GITHUB_SHA', "")
 
     test_name = time_df["name"].loc[1]
-    file_name = f'{test_name}_times.csv'
+    file_name = f"{path_to_wiki}/perf_tests/{test_name}_times.csv"
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
-        total_df = total_df.tail(int(os.getenv('INPUT_NUM_LAST_BUILD')) - 1)
+        total_df = total_df.tail(NUM_LAST_BUILDS)
         current = time_df.head(num_nodes)
+
+        if new_run_num == 0:
+            new_run_num = total_df["run_num"].iloc[-1] + 1
+
         current['run_num'] = [new_run_num for node in range(num_nodes)]
         current['date'] = [new_date for node in range(num_nodes)]
         current['commit'] = [commit_id for node in range(num_nodes)]
@@ -74,7 +82,7 @@ def set_graph_properties():
     plt.rc('figure', titlesize=BIG_SIZE)
 
 
-def generate_time_graph(test_name, time_data):
+def generate_time_graph(main_test_name, time_data):
     num_nodes = len(time_data)
 
     time_list = time_data[0]["name"].tolist()
@@ -119,7 +127,7 @@ def generate_time_graph(test_name, time_data):
 
         plt.tight_layout()
 
-        plt.savefig(f'{test_name}_{k}_time.png')
+        plt.savefig(f'{main_test_name}_{k}_time.png')
 
 
 def generate_memory_graph(test_name, memory_data):

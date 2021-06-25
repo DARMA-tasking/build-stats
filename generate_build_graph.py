@@ -159,11 +159,8 @@ def generate_badge(vt, tests):
     BADGE_COLOR = "brightgreen" if BUILD_TIME <= average_time else "red"
     title = os.getenv('INPUT_BADGE_TITLE').replace(" ", "%20")
 
-    print(
-        f"Last build time = {BUILD_TIME}seconds average build ="
-        f"{average_time}seconds color = {BADGE_COLOR}")
-    url = f"https://img.shields.io/badge/{title}-\
-        {BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
+    print(f"Last build time = {BUILD_TIME}seconds average build = {average_time}seconds color = {BADGE_COLOR}")
+    url = f"https://img.shields.io/badge/{title}-{BUILD_TIME//60}%20min%20{BUILD_TIME%60}%20sec-{BADGE_COLOR}.svg"
 
     BADGE_LOGO = os.getenv('INPUT_BADGE_LOGO')
     if(len(BADGE_LOGO) > 0):
