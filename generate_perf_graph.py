@@ -23,7 +23,12 @@ def prepare_data():
         "-r", "--run_num", help="Run number", required=False, type=int, default=0
     )
     parser.add_argument(
-        "-wiki", "--wiki_dir", help="vt.wiki directory", required=True, type=str
+        "-wiki",
+        "--wiki_dir",
+        help="vt.wiki directory",
+        required=False,
+        type=str,
+        default=".",
     )
 
     time_test_file = parser.parse_args().time_test
@@ -48,7 +53,9 @@ def prepare_data():
     commit_id = os.getenv("GITHUB_SHA", "")
 
     test_name = time_df["name"].loc[1]
-    file_name = f"{path_to_wiki}/perf_tests/{test_name}_times.csv"
+    out_dir = f"{path_to_wiki}/perf_tests"
+    file_name = f"{out_dir}/{test_name}_times.csv"
+
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
         total_df = total_df.tail(NUM_LAST_BUILDS)
@@ -66,6 +73,9 @@ def prepare_data():
         current["run_num"] = [new_run_num for node in range(num_nodes)]
         current["date"] = [new_date for node in range(num_nodes)]
         current["commit"] = [commit_id for node in range(num_nodes)]
+
+        if not os.path.exists(out_dir):
+            os.mkdir(out_dir)
 
     current.to_csv(file_name, index=False, float_format="%.3f")
     generate_historic_graph(test_name, num_nodes, current)
@@ -88,9 +98,6 @@ def set_graph_properties():
 
 def generate_time_graph(main_test_name, time_data):
     num_nodes = len(time_data)
-
-    time_list = time_data[0]["name"].tolist()
-    off = time_list[0].rfind(" ") + 1
 
     all_names = time_data[0]["name"].tolist()
     test_names = {name[name.find(" ") + 1 :] for name in all_names}
@@ -120,14 +127,25 @@ def generate_time_graph(main_test_name, time_data):
             ax_1.bar(
                 bar_positions[node],
                 value[node]["mean"],
+                yerr=value[node]["stdev"],
                 label=f"node {node}",
                 width=bar_width,
+                align="center",
+                alpha=0.9,
+                ecolor="black",
+                capsize=5.0,
             )
 
-        ax_1.set_xticks(num_iter)
+        if len(num_iter) == 1:
+            ax_1.set_xticks([])
+        else:
+            ax_1.set_xticks(num_iter)
 
         if len(value[0]) > 1:
-            ax_1.set_xticklabels([i[:off] for i in time_list])
+            name_list = value[0]["name"].tolist()
+            ax_1.set_xticklabels([i[: i.rfind(key)] for i in name_list])
+            ax_1.set_xlabel(key)
+
         ax_1.set_xlabel(key)
         ax_1.set_ylabel("Time (ms)")
         ax_1.legend()
@@ -174,8 +192,10 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 
     run_nums = pd.unique(dataframe["run_num"]).tolist()
     times = list()
+    errors = list()
     for node in range(num_nodes):
         times.append(dataframe["mean"].loc[dataframe["node"] == node].tolist())
+        errors.append(dataframe["stdev"].loc[dataframe["node"] == node].tolist())
 
     bar_width = 1.0 / (2 * num_nodes)
 
@@ -187,7 +207,17 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
         bar_positions.append([x + bar_width for x in bar_positions[node]])
 
     for node in range(num_nodes):
-        ax1.bar(bar_positions[node], times[node], label=f"node {node}", width=bar_width)
+        ax1.bar(
+            bar_positions[node],
+            times[node],
+            yerr=errors,
+            label=f"node {node}",
+            width=bar_width,
+            align="center",
+            alpha=0.9,
+            ecolor="black",
+            capsize=5.0,
+        )
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
