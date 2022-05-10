@@ -1,4 +1,4 @@
-FROM lifflander1/vt:amd64-ubuntu-20.04-clang-10-cpp
+FROM lifflander1/vt:amd64-ubuntu-22.04-clang-11-cpp
 
 RUN apt-get update -y -q && \
     apt-get install -y -q --no-install-recommends \
