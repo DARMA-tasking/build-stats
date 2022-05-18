@@ -404,11 +404,9 @@ def create_md_perf_page():
         "[Flamegraph](https://github.com/brendangregg/FlameGraph)\n"
         "## jacobi2d_vt node: 0\n"
         f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_count_0.svg')}\n"
-        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_size_0.svg')}\n"
         f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_leaked_0.svg')}\n"
         "## jacobi2d_vt node: 1\n"
         f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_count_1.svg')}\n"
-        f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_alloc_size_1.svg')}\n"
         f"{create_image_hyperlink(f'{perf_test_url}flame_heaptrack_jacobi_leaked_1.svg')}\n"
     )
 
