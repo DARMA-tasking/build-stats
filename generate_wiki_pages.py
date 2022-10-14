@@ -249,7 +249,7 @@ def generate_last_build_table():
             f"<td>{convert_time(total_timings[i])}</td>"
             f"<td>{convert_time(vt_timings[i])}</td>"
             f"<td>{convert_time(tests_timings[i])}</td>"
-            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>Commit</a></td></tr>"
+            f"<td><a href='https://github.com/{REPO_NAME}/commit/{commits[i]}'>{commits[i]}</a></td></tr>"
         )
 
     last_builds_table += "</table></details>\n"
