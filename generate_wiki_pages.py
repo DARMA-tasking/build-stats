@@ -364,7 +364,7 @@ def create_md_build_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers)
         file.write(file_content)
 
 
-def create_md_perf_page():
+def create_md_perf_page(last_builds):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-t",
@@ -392,12 +392,14 @@ def create_md_perf_page():
                 link = create_image_hyperlink(f"{perf_test_url}{file}")
                 content_with_all_tests += f"{link}\n"
 
-        content_with_all_tests += "*** \n"
-
     file_content = (
         f"# Performance Tests\n"
         f"{get_runner_info()}"
         f"{content_with_all_tests}\n"
+        "***\n"
+        "## Past Builds\n"
+        f"{last_builds} \n"
+        "*** \n"
         "# Heaptrack result\n"
         "Following flamegraphs were generated using"
         "[Heaptrack](https://github.com/KDE/heaptrack) and "
@@ -431,4 +433,4 @@ if __name__ == "__main__":
 
     last_builds_in = generate_last_build_table()
     create_md_build_page(last_builds_in, templates_in, template_sets_in, headers_in)
-    create_md_perf_page()
+    create_md_perf_page(last_builds_in)
