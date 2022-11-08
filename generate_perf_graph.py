@@ -58,7 +58,7 @@ def prepare_data():
 
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
-        total_df = total_df.tail(NUM_LAST_BUILDS)
+        total_df = total_df.tail(NUM_LAST_BUILDS * num_nodes)
         current = time_df.head(num_nodes)
 
         if new_run_num == 0:
