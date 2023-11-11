@@ -31,7 +31,7 @@ def get_name_times_avg(lines):
     avg_ms_threshold = 20
 
     total_times = []
-    name_times_avg = dict()
+    name_times_avg = {}
 
     index = 0
 
@@ -80,7 +80,7 @@ def get_headers(lines):
     """
 
     header_times = []
-    name_included_avg = dict()
+    name_included_avg = {}
 
     index = 0
 
@@ -124,15 +124,15 @@ def generate_name_times_avg_table(templates_text):
 def prepare_data():
     # Expensive template instantiations
     templates_total_times = []
-    templates = dict()
+    templates = {}
 
     # Expensive template sets
     template_sets_times = []
-    template_sets = dict()
+    template_sets = {}
 
     # Expensive headers
     headers_times = []
-    headers = dict()
+    headers = {}
 
     with open(CLANG_BUILD_REPORT) as file:
         lines = file.read().splitlines()
@@ -304,8 +304,9 @@ def create_image_hyperlink(image_link):
 def get_runner_info():
     return (
         "**NOTE. The following builds were run on GitHub Action runners"
-        "that use [2-core CPU and 7 GB RAM]"
+        " that use [2-core CPU and 7 GB RAM]"
         "(https://docs.github.com/en/actions/using-github-hosted-runners/"
+        "about-github-hosted-runners/"
         "about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
         "Configuration:\n"
         "- Compiler: **Clang-10**\n"

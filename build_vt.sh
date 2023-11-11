@@ -5,35 +5,14 @@ set -ex
 source_dir=${1}
 build_dir=${2}
 extra_flags=${3}
-build_tests=${4}
 
 # Dependency versions, when fetched via git.
-detector_rev=master
 checkpoint_rev=develop
 
 mkdir -p "${build_dir}"
 pushd "${build_dir}"
 
-export DETECTOR_BUILD=${build_dir}/detector
 export CHECKPOINT_BUILD=${build_dir}/checkpoint
-
-if test -d "${build_dir}/detector"
-then
-    { echo "Detector already in lib... not downloading, building, and installing"; } 2>/dev/null
-else
-    git clone -b "${detector_rev}" --depth 1 https://github.com/DARMA-tasking/detector.git
-    export DETECTOR=$PWD/detector
-
-    mkdir -p "$DETECTOR_BUILD"
-    cd "$DETECTOR_BUILD"
-    mkdir build
-    cd build
-    cmake -G "${CMAKE_GENERATOR:-Ninja}" \
-          -DCMAKE_INSTALL_PREFIX="$DETECTOR_BUILD/install" \
-          "$DETECTOR"
-    cmake --build . --target install
-fi
-
 
 if test -d "${build_dir}/checkpoint"
 then
@@ -89,7 +68,6 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_CXX_COMPILER="${CXX:-c++}" \
       -DCMAKE_C_COMPILER="${CC:-cc}" \
       -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS:-}" \
-      -Ddetector_DIR="$DETECTOR_BUILD/install" \
       -Dcheckpoint_DIR="$CHECKPOINT_BUILD/install" \
       -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" \
       -DCMAKE_INSTALL_PREFIX="$VT_BUILD/install" \
@@ -98,10 +76,3 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       "$VT"
 
 { time cmake --build . --target "${4}" ; } 2> >(tee build_time.txt)
-
-
-if test "$use_ccache"
-then
-    { echo -e "===\n=== ccache statistics after build\n==="; } 2>/dev/null
-    ccache -s
-fi
