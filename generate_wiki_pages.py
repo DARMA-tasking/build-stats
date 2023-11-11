@@ -31,7 +31,7 @@ def get_name_times_avg(lines):
     avg_ms_threshold = 20
 
     total_times = []
-    name_times_avg = dict()
+    name_times_avg = {}
 
     index = 0
 
@@ -80,7 +80,7 @@ def get_headers(lines):
     """
 
     header_times = []
-    name_included_avg = dict()
+    name_included_avg = {}
 
     index = 0
 
@@ -124,15 +124,15 @@ def generate_name_times_avg_table(templates_text):
 def prepare_data():
     # Expensive template instantiations
     templates_total_times = []
-    templates = dict()
+    templates = {}
 
     # Expensive template sets
     template_sets_times = []
-    template_sets = dict()
+    template_sets = {}
 
     # Expensive headers
     headers_times = []
-    headers = dict()
+    headers = {}
 
     with open(CLANG_BUILD_REPORT) as file:
         lines = file.read().splitlines()
@@ -146,7 +146,7 @@ def prepare_data():
                     lines[idx + 1 :]
                 )
 
-            if line.startswith("*** Expensive headers:"):
+            if line.startswith("**** Expensive headers:"):
                 headers_times, headers = get_headers(lines[idx + 1 :])
 
     return (
@@ -177,7 +177,7 @@ def generate_graph(name, templates_total_times):
     templates_total_times = [t // 1000 for t in templates_total_times]
 
     # Add x, y gridlines
-    ax_1.grid(b=True, color="grey", linestyle="-.", linewidth=0.5, alpha=0.8)
+    ax_1.grid(visible=True, color="grey", linestyle="-.", linewidth=0.5, alpha=0.8)
 
     # Remove x, y Ticks
     ax_1.xaxis.set_ticks_position("none")
@@ -304,12 +304,13 @@ def create_image_hyperlink(image_link):
 def get_runner_info():
     return (
         "**NOTE. The following builds were run on GitHub Action runners"
-        "that use [2-core CPU and 7 GB RAM]"
+        " that use [2-core CPU and 7 GB RAM]"
         "(https://docs.github.com/en/actions/using-github-hosted-runners/"
+        "about-github-hosted-runners/"
         "about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
         "Configuration:\n"
-        "- Compiler: **Clang-10**\n"
-        "- Linux: **Ubuntu 20.04**\n"
+        "- Compiler: **Clang-14**\n"
+        "- Linux: **Ubuntu 22.04**\n"
         "- Build Type: **Release**\n"
         "- Unity Build: **OFF**\n"
         "- Production Mode: **OFF**\n"
@@ -370,19 +371,19 @@ def create_md_perf_page(last_builds):
         "-t",
         "--tests_names",
         help="Perf tests names",
-        nargs="+",
-        default=[],
+        default="",
         required=True,
     )
 
-    test_names = parser.parse_args().tests_names
+    test_names_string = parser.parse_args().tests_names
 
     perf_test_url = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
     content_with_all_tests = "# Test Results\n"
 
-    for test_name in test_names:
+    list_of_test_names = test_names_string.split()
+    for test_name in list_of_test_names:
         past_runs_name = f"{test_name}_past_runs.png"
-        content_with_all_tests = (
+        content_with_all_tests += (
             f"## {test_name}\n"
             f"{create_image_hyperlink(f'{perf_test_url}{past_runs_name}')}\n"
         )
