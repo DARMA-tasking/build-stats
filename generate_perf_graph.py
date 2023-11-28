@@ -38,15 +38,22 @@ def prepare_data():
     time_df = pd.read_csv(time_test_file)
     memory_df = pd.read_csv(memory_test_file)
 
-    num_nodes = memory_df["node"].max() + 1
+    num_nodes = time_df["node"].max() + 1
 
-    memory_data = list()
-    time_data = list()
+    memory_data = []
+    time_data = []
     for node in range(num_nodes):
-        memory_data.append(memory_df.loc[memory_df["node"] == node])
-        time_data.append(time_df.tail(-num_nodes).loc[time_df["node"] == node])
+        node_memory_data = memory_df.loc[memory_df["node"] == node]
+        node_time_data = time_df.tail(-num_nodes).loc[time_df["node"] == node]
+
+        if not node_memory_data.empty:
+            memory_data.append(node_memory_data)
+
+        if not node_time_data.empty:
+            time_data.append(node_time_data)
 
     print(f"Memory: {memory_data}")
+    print(f"Time: {time_data}")
 
     new_run_num = parser.parse_args().run_num
     new_date = date.today().strftime("%d %B %Y")
@@ -56,23 +63,25 @@ def prepare_data():
     out_dir = f"{path_to_wiki}/perf_tests"
     file_name = f"{out_dir}/{test_name}_times.csv"
 
+    current = time_df.head(num_nodes).copy()
+
     if os.path.isfile(file_name):
         total_df = pd.read_csv(file_name)
         total_df = total_df.tail(NUM_LAST_BUILDS * num_nodes)
-        current = time_df.head(num_nodes)
 
         if new_run_num == 0:
             new_run_num = total_df["run_num"].iloc[-1] + 1
 
-        current["run_num"] = [new_run_num for node in range(num_nodes)]
-        current["date"] = [new_date for node in range(num_nodes)]
-        current["commit"] = [commit_id for node in range(num_nodes)]
-        current = total_df.append(current)
+        for node in range(num_nodes):
+            current.loc[current["node"] == node, "run_num"] = new_run_num
+            current.loc[current["node"] == node, "date"] = new_date
+            current.loc[current["node"] == node, "commit"] = commit_id
+        current = pd.concat([total_df, current])
     else:
-        current = time_df.head(num_nodes)
-        current["run_num"] = [new_run_num for node in range(num_nodes)]
-        current["date"] = [new_date for node in range(num_nodes)]
-        current["commit"] = [commit_id for node in range(num_nodes)]
+        for node in range(num_nodes):
+            current.loc[current["node"] == node, "run_num"] = new_run_num
+            current.loc[current["node"] == node, "date"] = new_date
+            current.loc[current["node"] == node, "commit"] = commit_id
 
         if not os.path.exists(out_dir):
             os.mkdir(out_dir)
@@ -191,11 +200,14 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
     plt.xlabel("Run number")
 
     run_nums = pd.unique(dataframe["run_num"]).tolist()
-    times = list()
-    errors = list()
+    times = []
+    errors = []
     for node in range(num_nodes):
         times.append(dataframe["mean"].loc[dataframe["node"] == node].tolist())
         errors.append(dataframe["stdev"].loc[dataframe["node"] == node].tolist())
+
+    print(f"generate_historic_graph::times: {times}")
+    print(f"generate_historic_graph::errors: {errors}")
 
     bar_width = 1.0 / (2 * num_nodes)
 
@@ -210,7 +222,7 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
         ax1.bar(
             bar_positions[node],
             times[node],
-            yerr=errors,
+            yerr=errors[node],
             label=f"node {node}",
             width=bar_width,
             align="center",
@@ -232,5 +244,9 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 if __name__ == "__main__":
     set_graph_properties()
     test_name_in, time_data_in, memory_data_in = prepare_data()
-    generate_memory_graph(test_name_in, memory_data_in)
-    generate_time_graph(test_name_in, time_data_in)
+
+    if len(memory_data_in) > 0:
+        generate_memory_graph(test_name_in, memory_data_in)
+
+    if len(time_data_in) > 0:
+        generate_time_graph(test_name_in, time_data_in)

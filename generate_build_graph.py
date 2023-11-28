@@ -53,19 +53,22 @@ def prepare_data():
 
     data_frame = pd.read_csv(previous_builds_filename)
     last_builds = data_frame.tail(int(os.getenv("INPUT_NUM_LAST_BUILD")) - 1)
-    updated = last_builds.append(
-        pd.DataFrame(
-            [
+    updated = pd.concat(
+        [
+            last_builds,
+            pd.DataFrame(
                 [
-                    vt_total_time_seconds,
-                    tests_total_time_seconds,
-                    new_run_num,
-                    new_date,
-                    commit_id,
-                ]
-            ],
-            columns=["vt", "tests", "run_num", "date", "commit"],
-        )
+                    [
+                        vt_total_time_seconds,
+                        tests_total_time_seconds,
+                        new_run_num,
+                        new_date,
+                        commit_id,
+                    ]
+                ],
+                columns=["vt", "tests", "run_num", "date", "commit"],
+            ),
+        ]
     )
 
     # Data to be plotted
