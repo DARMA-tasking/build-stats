@@ -304,7 +304,7 @@ def create_image_hyperlink(image_link):
 def get_runner_info():
     return (
         "**NOTE. The following builds were run on GitHub Action runners"
-        " that use [2-core CPU and 7 GB RAM]"
+        " that use [4-core CPU and 16 GB RAM]"
         "(https://docs.github.com/en/actions/using-github-hosted-runners/"
         "about-github-hosted-runners/"
         "about-github-hosted-runners#supported-runners-and-hardware-resources)** <br><br> \n"
