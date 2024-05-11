@@ -104,21 +104,22 @@ tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
     # Generate graph
     python3 /generate_build_graph.py -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$GITHUB_RUN_NUMBER"
 
-    perf_test_files=$(find "$VT_BUILD_FOLDER/tests/" -name "*_mem.csv" | sed 's!.*/!!' | sed -e 's/_mem.csv$//')
-
+    # perf_test_files=$(find "$VT_BUILD_FOLDER/tests/" -name "*_mem.csv" | sed 's!.*/!!' | sed -e 's/_mem.csv$//')
     cd perf_tests
 
-    for file in $perf_test_files
-    do
-        # Each test generates both time/mem files
-        time_file="${file}_time.csv"
-        memory_file="${file}_mem.csv"
+    python3 /generate_perf_graph.py
 
-        echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $file"
+    # for file in $perf_test_files
+    # do
+    #     # Each test generates both time/mem files
+    #     time_file="${file}_time.csv"
+    #     memory_file="${file}_mem.csv"
 
-        python3 /generate_perf_graph.py -time "$VT_BUILD_FOLDER/tests/$time_file"\
-        -mem "$VT_BUILD_FOLDER/tests/$memory_file" -r "$GITHUB_RUN_NUMBER" -wiki "$tmp_dir"
-    done
+    #     echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $file"
+
+    #     python3 /generate_perf_graph.py -time "$VT_BUILD_FOLDER/tests/$time_file"\
+    #     -mem "$VT_BUILD_FOLDER/tests/$memory_file" -r "$GITHUB_RUN_NUMBER" -wiki "$tmp_dir"
+    # done
 
     cd -
 

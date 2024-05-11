@@ -9,7 +9,33 @@ import pandas as pd
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
 NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", "30")) - 1
+VT_BUILD_FOLDER = os.getenv("VT_BUILD_FOLDER", "/build/vt")
+# def collection_local_send():
 
+# def comm_cost_curve():
+
+# def make_runnable_micro():
+
+# def objectgroup_local_send():
+
+# def ping_pong():
+
+# def ping_pong_am():
+
+def reduce():
+    time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_time.csv")
+    memory_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_mem.csv")
+
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x='name', y='mean', hue='node', data=time_df)
+    plt.title('Mean Values with Standard Deviation by Node')
+    plt.xlabel('Iteration')
+    plt.ylabel('Mean Value')
+    plt.xticks(ticks=[])
+    plt.legend(title='Node')
+    plt.tight_layout()
+
+    plt.savefig("/test_reduce.png")
 
 def prepare_data():
     """Parse the input data, read CSV file and append the new results"""
@@ -243,10 +269,11 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 
 if __name__ == "__main__":
     set_graph_properties()
-    test_name_in, time_data_in, memory_data_in = prepare_data()
 
-    if len(memory_data_in) > 0:
-        generate_memory_graph(test_name_in, memory_data_in)
-
-    if len(time_data_in) > 0:
-        generate_time_graph(test_name_in, time_data_in)
+    reduce()
+    # collection_local_send()
+    # comm_cost_curve()
+    # make_runnable_micro()
+    # objectgroup_local_send()
+    # ping_pong()
+    # ping_pong_am()
