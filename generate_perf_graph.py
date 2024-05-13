@@ -26,16 +26,25 @@ def reduce():
     time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_time.csv")
     memory_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_mem.csv")
 
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x='name', y='mean', hue='node', data=time_df)
-    plt.title('Mean Values with Standard Deviation by Node')
-    plt.xlabel('Iteration')
-    plt.ylabel('Mean Value')
-    plt.xticks(ticks=[])
-    plt.legend(title='Node')
-    plt.tight_layout()
+    # Extract iteration number from 'name'
+    time_df['iteration'] = time_df['name'].apply(lambda x: int(x.split()[0]))
 
-    plt.savefig("/test_reduce.png")
+    _, ax = plt.subplots()
+    for node in time_df['node'].unique():
+        node_data = time_df[time_df['node'] == node]
+        _, caps, bars = ax.errorbar(node_data['iteration'], node_data['mean'], yerr=node_data['stdev'], fmt='-', label=f'Node {node}')
+
+        # loop through bars and caps and set the alpha value
+        [bar.set_alpha(0.3) for bar in bars]
+        [cap.set_alpha(0.3) for cap in caps]
+
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('Time (ms)')
+    ax.set_title('Reduce times over 100 iterations')
+    ax.legend()
+    plt.savefig("test_reduce_time.png")
+
+    generate_memory_graph(reduce, memory_df)
 
 def prepare_data():
     """Parse the input data, read CSV file and append the new results"""
@@ -193,29 +202,30 @@ def generate_time_graph(main_test_name, time_data):
 
 
 def generate_memory_graph(test_name, memory_data):
-    _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
+    _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
 
-    ax1.set_title(f"{test_name} memory usage")
+    ax1.set_title(f"{test_name} Memory Usage")
     plt.xlabel("Iteration")
+    plt.ylabel("Size (MiB)")
 
-    num_nodes = len(memory_data)
-    num_iter = list(range(len(memory_data[0])))
+    num_nodes = memory_data['node'].max() + 1
 
     for node in range(num_nodes):
+        node_data = memory_data[memory_data['node'] == node]
+        num_iter = list(range(len(node_data)))  # Ensure num_iter matches the length of node_data
+
         ax1.plot(
             num_iter,
-            memory_data[node]["mem"] / 1024 / 1024,
-            label=f"node {node}",
-            linewidth=4,
+            node_data['mem'] / 1024 / 1024,
+            label=f"Node {node}",
+            linewidth=4
         )
 
     ax1.xaxis.get_major_locator().set_params(integer=True)
     ax1.legend()
     ax1.grid(True)
-    ax1.set_ylabel("Size (MiB)")
 
     plt.tight_layout()
-
     plt.savefig(f"{test_name}_memory.png")
 
 
