@@ -11,16 +11,33 @@ GRAPH_HEIGHT = 10
 NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", "30")) - 1
 VT_BUILD_FOLDER = os.getenv("VT_BUILD_FOLDER", "/build/vt")
 
+def generate_bar_graph_for_single_value(test_file_name, title):
+    time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/{test_file_name}.csv")
 
-# def comm_cost_curve():
+    _, ax = plt.subplots()
+    x_pos = range(len(time_df))
 
-# def make_runnable_micro():
+    ax.bar(x=x_pos, height=time_df['mean'], yerr=time_df['stdev'], align='center', alpha=0.7, ecolor='black', capsize=10)
 
-# def objectgroup_local_send():
+    plt.title(title)
 
-# def ping_pong():
+    plt.xticks(x_pos, time_df['name'])
+    plt.xlabel("")
 
-# def ping_pong_am():
+    plt.ylabel("Time (ms)")
+    plt.tight_layout()
+
+    plt.savefig(f"{test_file_name}.png")
+
+def ping_pong_am():
+    generate_bar_graph_for_single_value("test_ping_pong_am_time", "Time for sending message (ping-pong) 1000 times")
+
+def make_runnable_micro():
+    generate_bar_graph_for_single_value("test_make_runnable_micro_time", "Time for calling makeRunnable 1000 times")
+
+def objgroup_local_send():
+    generate_bar_graph_for_single_value("test_objgroup_local_send_time", "Time for ObjectGroup Local Send (1000 Iterations)")
+
 def collection_local_send():
     time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_collection_local_send_time.csv")
     time_prealloc_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_collection_local_send_preallocate_time.csv")
@@ -43,7 +60,7 @@ def collection_local_send():
     plt.ylabel("Time (ms)")
     plt.tight_layout()
 
-    plt.show()
+    plt.savefig("./test_collection_local_send_time.png")
 
 def reduce():
     time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_time.csv")
@@ -304,11 +321,11 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 if __name__ == "__main__":
     set_graph_properties()
 
-    # reduce()
+    reduce()
     collection_local_send()
+    objgroup_local_send()
+    make_runnable_micro()
+    ping_pong_am()
 
-    # comm_cost_curve()
-    # make_runnable_micro()
-    # objectgroup_local_send()
     # ping_pong()
-    # ping_pong_am()
+
