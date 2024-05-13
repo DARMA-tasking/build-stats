@@ -10,7 +10,7 @@ GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
 NUM_LAST_BUILDS = int(os.getenv("INPUT_NUM_LAST_BUILD", "30")) - 1
 VT_BUILD_FOLDER = os.getenv("VT_BUILD_FOLDER", "/build/vt")
-# def collection_local_send():
+
 
 # def comm_cost_curve():
 
@@ -21,6 +21,29 @@ VT_BUILD_FOLDER = os.getenv("VT_BUILD_FOLDER", "/build/vt")
 # def ping_pong():
 
 # def ping_pong_am():
+def collection_local_send():
+    time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_collection_local_send_time.csv")
+    time_prealloc_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_collection_local_send_preallocate_time.csv")
+
+    time_df["name"] = "allocate"
+    time_prealloc_df["name"] = "preallocate"
+
+    combined_df = pd.concat([time_df, time_prealloc_df], axis=0)
+
+    _, ax = plt.subplots()
+    x_pos = range(len(combined_df))
+
+    ax.bar(x=x_pos, height=combined_df['mean'], yerr=combined_df['stdev'], align='center', alpha=0.7, ecolor='black', capsize=10)
+
+    plt.title("Time for Collection Local Send (1000 Iterations)")
+
+    plt.xticks(x_pos, combined_df['name'])
+    plt.xlabel("")
+
+    plt.ylabel("Time (ms)")
+    plt.tight_layout()
+
+    plt.show()
 
 def reduce():
     time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_reduce_time.csv")
@@ -42,6 +65,7 @@ def reduce():
     ax.set_ylabel('Time (ms)')
     ax.set_title('Reduce times over 100 iterations')
     ax.legend()
+    plt.tight_layout()
     plt.savefig("test_reduce_time.png")
 
     generate_memory_graph(reduce, memory_df)
@@ -280,8 +304,9 @@ def generate_historic_graph(test_name, num_nodes, dataframe):
 if __name__ == "__main__":
     set_graph_properties()
 
-    reduce()
-    # collection_local_send()
+    # reduce()
+    collection_local_send()
+
     # comm_cost_curve()
     # make_runnable_micro()
     # objectgroup_local_send()
