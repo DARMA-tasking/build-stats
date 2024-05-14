@@ -1,5 +1,4 @@
 import os
-from collections import defaultdict
 import argparse
 from datetime import date
 import matplotlib.pyplot as plt
@@ -14,7 +13,7 @@ VT_BUILD_FOLDER = os.getenv("VT_BUILD_FOLDER", "/build/vt")
 def generate_bar_graph_for_single_value(test_file_name, title):
     time_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/{test_file_name}.csv")
 
-    _, ax = plt.subplots()
+    _, ax = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
     x_pos = range(len(time_df))
 
     ax.bar(x=x_pos, height=time_df['mean'], yerr=time_df['stdev'], align='center', alpha=0.7, ecolor='black', capsize=10)
@@ -28,6 +27,67 @@ def generate_bar_graph_for_single_value(test_file_name, title):
     plt.tight_layout()
 
     plt.savefig(f"{test_file_name}.png")
+
+def ping_pong():
+    df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_ping_pong_time.csv")
+
+    # Split data by nodes
+    num_nodes = df['node'].nunique()
+    time_data = [df[df["node"] == node] for node in range(num_nodes)]
+
+    # Create the plot
+    _, ax_1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
+    ax_1.set_title("Bytes time results")
+
+    num_iter = list(range(len(time_data[0])))
+    bar_width = 1.0 / (2 * num_nodes)
+
+    # Calculate bar positions for each node
+    bar_positions = [
+        [i - bar_width * (num_nodes / 2) + bar_width / 2 for i in num_iter]
+    ]
+
+    for node in range(1, num_nodes):
+        bar_positions.append([x + bar_width for x in bar_positions[node-1]])
+
+    for node in range(num_nodes):
+        ax_1.bar(
+            bar_positions[node],
+            time_data[node]["mean"],
+            yerr=time_data[node]["stdev"],
+            label=f"node {node}",
+            width=bar_width,
+            align="center",
+            alpha=0.9,
+            ecolor="black",
+            capsize=5.0,
+        )
+
+    ax_1.grid(True, which="both", ls="--", linewidth=0.5)
+
+    # Set x-ticks and labels
+    name_list = time_data[0]["name"].tolist()
+    ax_1.set_xticks(num_iter)
+    ax_1.set_xticklabels([i.split()[0] for i in name_list])
+    ax_1.set_xlabel("Bytes")
+
+    # Set y-axis label and scale
+    ax_1.set_ylabel("Time (ms)")
+    ax_1.set_yscale('log')
+
+    # Customize y-ticks
+    y_ticks = [0.03, 1, 5, 40]
+    ax_1.set_yticks(y_ticks)
+    ax_1.set_yticklabels([f"{y_tick:.2f} ms" for y_tick in y_ticks])
+    ax_1.legend()
+
+    plt.xticks(rotation=85)
+    plt.tight_layout()
+
+    plt.savefig("ping_pong_time.png")
+
+    memory_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_ping_pong_mem.csv")
+    generate_memory_graph("ping_pong", memory_df)
 
 def ping_pong_am():
     generate_bar_graph_for_single_value("test_ping_pong_am_time", "Time for sending message (ping-pong) 1000 times")
@@ -85,7 +145,7 @@ def reduce():
     plt.tight_layout()
     plt.savefig("test_reduce_time.png")
 
-    generate_memory_graph(reduce, memory_df)
+    generate_memory_graph("reduce", memory_df)
 
 def prepare_data():
     """Parse the input data, read CSV file and append the new results"""
@@ -180,68 +240,6 @@ def set_graph_properties():
     plt.rc("legend", fontsize=small_size)
     plt.rc("figure", titlesize=big_size)
 
-
-def generate_time_graph(main_test_name, time_data):
-    num_nodes = len(time_data)
-
-    all_names = time_data[0]["name"].tolist()
-    test_names = {name[name.find(" ") + 1 :] for name in all_names}
-
-    per_test_dict = defaultdict(dict)
-    for test_name in test_names:
-        for node in range(num_nodes):
-            per_test_dict.setdefault(test_name, []).append(
-                time_data[node][time_data[node]["name"].str.endswith(test_name)]
-            )
-
-    for key, value in per_test_dict.items():
-        _, ax_1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT), nrows=1, ncols=1)
-        ax_1.set_title(f"{key} time results")
-
-        num_iter = list(range(len(value[0])))
-        bar_width = 1.0 / (2 * num_nodes)
-
-        bar_positions = [
-            [i - bar_width * (num_nodes / 2) + bar_width / 2 for i in num_iter]
-        ]
-
-        for node in range(num_nodes - 1):
-            bar_positions.append([x + bar_width for x in bar_positions[node]])
-
-        for node in range(num_nodes):
-            ax_1.bar(
-                bar_positions[node],
-                value[node]["mean"],
-                yerr=value[node]["stdev"],
-                label=f"node {node}",
-                width=bar_width,
-                align="center",
-                alpha=0.9,
-                ecolor="black",
-                capsize=5.0,
-            )
-
-        if len(num_iter) == 1:
-            ax_1.set_xticks([])
-        else:
-            ax_1.set_xticks(num_iter)
-
-        if len(value[0]) > 1:
-            name_list = value[0]["name"].tolist()
-            ax_1.set_xticklabels([i[: i.rfind(key)] for i in name_list])
-            ax_1.set_xlabel(key)
-
-        ax_1.set_xlabel(key)
-        ax_1.set_ylabel("Time (ms)")
-        ax_1.legend()
-
-        plt.xticks(rotation=85)
-
-        plt.tight_layout()
-
-        plt.savefig(f"{main_test_name}_{key}_time.png")
-
-
 def generate_memory_graph(test_name, memory_data):
     _, ax1 = plt.subplots(figsize=(GRAPH_WIDTH, GRAPH_HEIGHT))
 
@@ -326,6 +324,5 @@ if __name__ == "__main__":
     objgroup_local_send()
     make_runnable_micro()
     ping_pong_am()
-
-    # ping_pong()
+    ping_pong()
 
