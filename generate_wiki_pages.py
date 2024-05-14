@@ -1,5 +1,4 @@
 import os
-import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -366,32 +365,28 @@ def create_md_build_page(last_builds, exp_temp_inst, exp_temp_sets, exp_headers)
 
 
 def create_md_perf_page(last_builds):
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-t",
-        "--tests_names",
-        help="Perf tests names",
-        default="",
-        required=True,
-    )
-
-    test_names_string = parser.parse_args().tests_names
-
     perf_test_url = f"https://github.com/{REPO_NAME}/wiki/perf_tests/"
-    content_with_all_tests = "# Test Results\n"
-
-    list_of_test_names = test_names_string.split()
-    for test_name in list_of_test_names:
-        past_runs_name = f"{test_name}_past_runs.png"
-        content_with_all_tests += (
-            f"## {test_name}\n"
-            f"{create_image_hyperlink(f'{perf_test_url}{past_runs_name}')}\n"
-        )
-
-        for file in os.listdir(f"{OUTPUT_DIR}/../perf_tests/"):
-            if file.startswith(test_name) and (file != past_runs_name):
-                link = create_image_hyperlink(f"{perf_test_url}{file}")
-                content_with_all_tests += f"{link}\n"
+    content_with_all_tests = (
+        "# Test Results\n"
+        "## test_reduce\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_reduce_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_reduce_mem.png')}\n"
+        "## collection_local_send\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_collection_local_send_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_collection_local_send_time_history.png')}\n"
+        "## objgroup_local_send\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_objgroup_local_send_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_objgroup_local_send_time_history.png')}\n"
+        "## make_runnable_micro\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_make_runnable_micro_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_make_runnable_micro_time_history.png')}\n"
+        "## ping_pong\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_mem.png')}\n"
+        "## ping_pong_am\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_am_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_am_time_history.png')}\n"
+    )
 
     file_content = (
         f"# Performance Tests\n"

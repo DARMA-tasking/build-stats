@@ -22,12 +22,12 @@ export CXX=clang++-15
 export CC=clang-15
 
 WORKSPACE=$1
-RUN_NUMBER=$2
 BUILD_STATS_DIR=$3
 
 cd "$WORKSPACE"
 
-VT_BUILD_FOLDER="$WORKSPACE/build/vt"
+export RUN_NUMBER=$2
+export VT_BUILD_FOLDER="$WORKSPACE/build/vt"
 
 ########################
 ## CLONE DEPENDENCIES ##
@@ -53,8 +53,13 @@ export VT_TESTS_ARGUMENTS="--vt_perf_gen_file"
 
 # Build VT lib
 [ ! -d 'vt' ] && git clone https://github.com/$GITHUB_REPOSITORY.git
+cd vt
+GITHUB_SHA=$(git rev-parse HEAD)
+export GITHUB_SHA=$GITHUB_SHA
+cd -
 eval "$BUILD_STATS_DIR/build_vt.sh" "$WORKSPACE/vt" "$WORKSPACE/build" "-ftime-trace" vt
 vt_build_time=$(grep -oP 'real\s+\K\d+m\d+\,\d+s' "$VT_BUILD_FOLDER/build_time.txt")
+
 
 # Build tests and examples
 eval "$BUILD_STATS_DIR/build_vt.sh" "$WORKSPACE/vt" "$WORKSPACE/build" "-ftime-trace" all
@@ -106,25 +111,14 @@ cd "$WIKI_DIR" || exit 1
 
 # Generate graph
 python3 "$BUILD_STATS_DIR/generate_build_graph.py" -vt "$vt_build_time" -te "$tests_and_examples_build" -r "$RUN_NUMBER"
-perf_test_files=$(find "$VT_BUILD_FOLDER/tests/" -name "*_mem.csv" | sed 's!.*/!!' | sed -e 's/_mem.csv$//')
 
 cd perf_tests
-
-for file in $perf_test_files
-do
-    # Each test generates both time/mem files
-    time_file="${file}_time.csv"
-    memory_file="${file}_mem.csv"
-    echo "Test files $VT_BUILD_FOLDER/tests/$time_file $VT_BUILD_FOLDER/tests/$memory_file for test: $file"
-    python3 "$BUILD_STATS_DIR/generate_perf_graph.py" -time "$VT_BUILD_FOLDER/tests/$time_file"\
-    -mem "$VT_BUILD_FOLDER/tests/$memory_file" -r "$RUN_NUMBER" -wiki "$WIKI_DIR"
-done
-
+python3 "$BUILD_STATS_DIR/generate_perf_graph.py"
 cd -
 
 cp "$WORKSPACE/build_result.txt" "$INPUT_BUILD_STATS_OUTPUT"
 eval cp "$WORKSPACE/flame_heaptrack*" "./perf_tests/"
 
-python3 "$BUILD_STATS_DIR/generate_wiki_pages.py" -t "$perf_test_files"
+python3 "$BUILD_STATS_DIR/generate_wiki_pages.py"
 
 exit 0
