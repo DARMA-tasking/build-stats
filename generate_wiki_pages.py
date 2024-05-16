@@ -386,6 +386,10 @@ def create_md_perf_page(last_builds):
         "## ping_pong_am\n"
         f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_am_time.png')}\n"
         f"{create_image_hyperlink(f'{perf_test_url}test_ping_pong_am_time_history.png')}\n"
+        "## send_cost\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_send_cost_small_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_send_cost_medium_time.png')}\n"
+        f"{create_image_hyperlink(f'{perf_test_url}test_send_cost_large_time.png')}\n"
     )
 
     file_content = (
