@@ -7,7 +7,7 @@ RUN apt-get update -y -q && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install matplotlib pandas requests
+RUN pip3 install matplotlib pandas requests seaborn
 
 COPY ClangBuildAnalyzer.ini /
 

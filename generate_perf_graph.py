@@ -2,7 +2,7 @@ import os
 from datetime import date
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import seaborn as sns
 
 GRAPH_WIDTH = 20
 GRAPH_HEIGHT = 10
@@ -76,6 +76,60 @@ def generate_bar_graph_for_single_value(test_file_name, title, hisotry_title):
     plt.tight_layout()
 
     plt.savefig(f"{test_file_name}_history.png")
+
+
+def generate_send_cost_graph(name, subtitle, data_frame):
+    graph = sns.catplot(
+        x="name",
+        y="mean",
+        hue="Group",
+        data=data_frame,
+        kind="bar",
+        height=6,
+        aspect=2,
+        palette="muted",
+    )
+
+    graph.set_xticklabels(rotation=45, horizontalalignment="right")
+    graph.set_axis_labels("Payload Size (num of 32bit elems)", "Mean Time (ms)")
+    graph.figure.suptitle(subtitle, fontsize=14, fontweight="bold")
+    graph.figure.subplots_adjust(top=0.9)
+    plt.tight_layout()
+
+    graph.figure.savefig(f"test_send_cost_{name}_time.png")
+
+
+def send_cost():
+    mpi_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_send_time.csv")
+    objgroup_df = pd.read_csv(f"{VT_BUILD_FOLDER}/tests/test_objgroup_send_time.csv")
+    collection_df = pd.read_csv(
+        f"{VT_BUILD_FOLDER}/tests/test_collection_send_time.csv"
+    )
+
+    mpi_df["Group"] = "MPI"
+    objgroup_df["Group"] = "ObjGroup"
+    collection_df["Group"] = "Collection"
+
+    combined_df = pd.concat([mpi_df, objgroup_df, collection_df])
+
+    # Convert the name to payload size, so we can group them
+    combined_df["name"] = combined_df["name"].apply(lambda x: int(x.split()[-1]))
+
+    df_small = combined_df[combined_df["name"].isin([1, 64, 128])]
+    df_medium = combined_df[combined_df["name"].isin([2048, 16384, 32768])]
+    df_large = combined_df[combined_df["name"].isin([524288, 1048576, 2097152])]
+
+    sns.set_theme(style="whitegrid")
+
+    generate_send_cost_graph(
+        "small", "Execution time of sending small payloads", df_small
+    )
+    generate_send_cost_graph(
+        "medium", "Execution time of sending medium payloads", df_medium
+    )
+    generate_send_cost_graph(
+        "large", "Execution time of sending large payloads", df_large
+    )
 
 
 def ping_pong():
@@ -339,3 +393,4 @@ if __name__ == "__main__":
     make_runnable_micro()
     ping_pong_am()
     ping_pong()
+    send_cost()
