@@ -73,6 +73,7 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_INSTALL_PREFIX="$VT_BUILD/install" \
       -Dvt_ci_build="${VT_CI_BUILD:-0}" \
       -DCMAKE_CXX_FLAGS="${extra_flags:-}" \
+      -Dvt_tests_num_nodes=2 \
       "$VT"
 
 { time cmake --build . --target "${4}" ; } 2> >(tee build_time.txt)

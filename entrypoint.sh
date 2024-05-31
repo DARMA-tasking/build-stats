@@ -19,7 +19,7 @@ if [ -z "${INPUT_GITHUB_PERSONAL_TOKEN}" ]; then
     exit 1
 fi
 
-VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
+export VT_BUILD_FOLDER="$GITHUB_WORKSPACE/build/vt"
 
 ########################
 ## CLONE DEPENDENCIES ##
