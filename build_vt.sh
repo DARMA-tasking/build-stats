@@ -7,28 +7,27 @@ build_dir=${2}
 extra_flags=${3}
 
 # Dependency versions, when fetched via git.
-checkpoint_rev=develop
+magistrate_rev=develop
 
 mkdir -p "${build_dir}"
 pushd "${build_dir}"
 
-export CHECKPOINT_BUILD=${build_dir}/checkpoint
+export MAGISTRATE_BUILD=${build_dir}/magistrate
 
-if test -d "${build_dir}/checkpoint"
+if test -d "${build_dir}/magistrate"
 then
-    { echo "Checkpoint already in lib... not downloading, building, and installing"; } 2>/dev/null
+    { echo "Magistrate already in lib... not downloading, building, and installing"; } 2>/dev/null
 else
-    git clone -b "${checkpoint_rev}" --depth 1 https://github.com/DARMA-tasking/checkpoint.git
-    export CHECKPOINT=$PWD/checkpoint
+    git clone -b "${magistrate_rev}" --depth 1 https://github.com/DARMA-tasking/magistrate.git
+    export MAGISTRATE=$PWD/magistrate
 
-    mkdir -p "$CHECKPOINT_BUILD"
-    cd "$CHECKPOINT_BUILD"
+    mkdir -p "$MAGISTRATE_BUILD"
+    cd "$MAGISTRATE_BUILD"
     mkdir build
     cd build
     cmake -G "${CMAKE_GENERATOR:-Ninja}" \
-          -DCMAKE_INSTALL_PREFIX="$CHECKPOINT_BUILD/install" \
-          -Ddetector_DIR="$DETECTOR_BUILD/install" \
-          "$CHECKPOINT"
+          -DCMAKE_INSTALL_PREFIX="$MAGISTRATE_BUILD/install" \
+          "$MAGISTRATE"
     cmake --build . --target install
 fi
 
@@ -68,7 +67,7 @@ cmake -G "${CMAKE_GENERATOR:-Ninja}" \
       -DCMAKE_CXX_COMPILER="${CXX:-c++}" \
       -DCMAKE_C_COMPILER="${CC:-cc}" \
       -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS:-}" \
-      -Dcheckpoint_ROOT="$CHECKPOINT_BUILD/install" \
+      -Dmagistrate_ROOT="$MAGISTRATE_BUILD/install" \
       -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" \
       -DCMAKE_INSTALL_PREFIX="$VT_BUILD/install" \
       -Dvt_ci_build="${VT_CI_BUILD:-0}" \
